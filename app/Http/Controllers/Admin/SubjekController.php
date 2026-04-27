@@ -49,7 +49,7 @@ class SubjekController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'id_timkerja' => 'nullable|exists:tb_timkerja,id_timkerja',
+            'id_timkerja' => 'required|exists:tb_timkerja,id_timkerja',
             'nama_subjek' => 'required|string|max:150',
         ]);
         Subjek::create([
@@ -71,7 +71,7 @@ class SubjekController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'id_timkerja' => 'nullable|exists:tb_timkerja,id_timkerja',
+            'id_timkerja' => 'required|exists:tb_timkerja,id_timkerja',
             'nama_subjek' => 'required|string|max:150',
             'status'      => 'required|in:aktif,nonaktif',
         ]);

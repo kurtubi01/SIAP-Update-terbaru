@@ -852,6 +852,7 @@
                             @forelse($allSop as $index => $item)
                             @php($latestMonitoring = $item->latestMonitoring)
                             @php($latestEvaluasi = $item->latestEvaluasi)
+                            @php($revisionState = $sopWorkflow->revisionState($item))
                             <tr>
                                 @if($canBulkDelete)
                                     <td>
@@ -919,7 +920,12 @@
                                                 data-nama="{{ $item->nama_sop }}"
                                                 data-nomor="{{ $item->nomor_sop }}"
                                                 data-revisi="{{ $item->revisi_ke }}"
+                                                data-preferred-tab="monitoring"
                                                 data-monitored="{{ $item->monitorings_count > 0 ? '1' : '0' }}"
+                                                data-evaluated="{{ $revisionState['has_evaluasi'] ? '1' : '0' }}"
+                                                data-can-revise="{{ $revisionState['can_revise'] ? '1' : '0' }}"
+                                                data-revision-message="{{ $revisionState['message'] }}"
+                                                data-revision-label="{{ $revisionState['label'] }}"
                                                 data-monitoring-id="{{ $latestMonitoring?->id_monitoring }}"
                                                 data-monitoring-prosedur="{{ $latestMonitoring?->prosedur }}"
                                                 data-monitoring-kriteria="{{ $latestMonitoring?->kriteria_penilaian }}"
@@ -963,6 +969,7 @@
                                     <div class="revision-badge">
                                         {{ (int) $item->revisi_ke === 0 ? 'Versi Awal' : 'Revisi ke-' . $item->revisi_ke }}
                                     </div>
+                                    <div class="small text-muted mt-2">{{ $revisionState['label'] }}</div>
                                 </td>
 
                                 <td class="target-tim"><span class="tim-label">{{ $subjekItem->timkerja->nama_timkerja ?? 'Internal' }}</span></td>
@@ -974,7 +981,12 @@
                                                     data-nama="{{ $item->nama_sop }}"
                                                     data-nomor="{{ $item->nomor_sop }}"
                                                     data-revisi="{{ $item->revisi_ke }}"
+                                                    data-preferred-tab="revisi"
                                                     data-monitored="{{ $item->monitorings_count > 0 ? '1' : '0' }}"
+                                                    data-evaluated="{{ $revisionState['has_evaluasi'] ? '1' : '0' }}"
+                                                    data-can-revise="{{ $revisionState['can_revise'] ? '1' : '0' }}"
+                                                    data-revision-message="{{ $revisionState['message'] }}"
+                                                    data-revision-label="{{ $revisionState['label'] }}"
                                                     data-monitoring-id="{{ $latestMonitoring?->id_monitoring }}"
                                                     data-monitoring-prosedur="{{ $latestMonitoring?->prosedur }}"
                                                     data-monitoring-kriteria="{{ $latestMonitoring?->kriteria_penilaian }}"
@@ -987,7 +999,7 @@
                                                     data-evaluasi-kriteria='@json($latestEvaluasi?->kriteria_evaluasi ?? [])'
                                                 title="Kelola SOP">
                                                 <i class="bi bi-ui-radios-grid"></i>
-                                                <span>Revisi SOP</span>
+                                                <span>{{ $revisionState['can_revise'] ? 'Revisi SOP' : 'Lengkapi Monev' }}</span>
                                             </button>
                                         @endif
                                         <a href="{{ route('view.pdf', basename($item->link_sop)) }}"
@@ -1341,6 +1353,7 @@
                                             <label class="form-label">SOP yang Akan Direvisi</label>
                                             <input type="text" id="sopRevisionName" class="form-control bg-light fw-bold" readonly>
                                             <div id="sopRevisionInfo" class="text-muted mt-1 small"></div>
+                                            <div id="sopRevisionStatus" class="alert alert-light border rounded-4 mt-3 mb-0 small"></div>
                                         </div>
                                         <div class="mb-3 sop-file-drop">
                                             <label class="form-label">Upload File PDF Versi Baru</label>
@@ -1352,11 +1365,11 @@
                                         </div>
                                     </div>
 
-                                    <div class="form-note-soft mt-3">Revisi hanya bisa disimpan jika SOP sudah pernah dimonitoring. Validasi ini tetap dijaga di backend.</div>
+                                    <div class="form-note-soft mt-3" id="sopRevisionNote">Revisi hanya bisa disimpan jika SOP sudah melalui monitoring dan evaluasi. Validasi ini tetap dijaga di backend.</div>
 
                                     <div class="sop-panel-actions">
                                         <button type="button" class="btn btn-sop-soft" data-bs-dismiss="modal">Batal</button>
-                                        <button type="submit" class="btn btn-sop-warning">Simpan Revisi</button>
+                                        <button type="submit" class="btn btn-sop-warning" id="sopRevisionSubmit">Simpan Revisi</button>
                                     </div>
                                 </form>
                             </div>
@@ -1637,6 +1650,8 @@
             const sopActionModalEl = document.getElementById('modalSopAction');
             const sopActionModal = sopActionModalEl ? new bootstrap.Modal(sopActionModalEl) : null;
             const monitoringTabTrigger = document.getElementById('monitoring-tab');
+            const evaluasiTabTrigger = document.getElementById('evaluasi-tab');
+            const revisiTabTrigger = document.getElementById('revisi-tab');
             const evaluasiUrlBase = @json(url($prefix . '/evaluasi'));
 
             sopActionModalEl?.addEventListener('shown.bs.modal', function () {
@@ -1667,7 +1682,11 @@
                 const monitoringId = button.data('monitoring-id');
                 const evaluasiId = button.data('evaluasi-id');
                 const hasMonitoring = String(button.data('monitored')) === '1';
-                const hasEvaluasi = Boolean(evaluasiId);
+                const hasEvaluasi = String(button.data('evaluated')) === '1' || Boolean(evaluasiId);
+                const canRevise = String(button.data('can-revise')) === '1';
+                const preferredTab = String(button.data('preferred-tab') || 'monitoring');
+                const revisionMessage = button.data('revision-message') || 'Revisi hanya dapat dilakukan setelah monitoring dan evaluasi selesai.';
+                const revisionLabel = button.data('revision-label') || (canRevise ? 'Siap Revisi' : 'Menunggu Monev');
                 const revisionNumber = Number(button.data('revisi') || 0);
                 const monitoringUrlBase = @json(url($prefix . '/monitoring'));
                 const evaluasiCriteria = (() => {
@@ -1735,9 +1754,28 @@
                 $('#sopRevisionId').val(sopId);
                 $('#sopRevisionName').val(button.data('nama') || '-');
                 $('#sopRevisionInfo').text(`Posisi saat ini: ${revisionNumber > 0 ? `Revisi ke-${revisionNumber}` : 'Versi Awal'}`);
+                $('#sopRevisionStatus').text(`${revisionLabel}. ${revisionMessage}`);
+                $('#sopRevisionNote').text(revisionMessage);
+                $('#sopRevisionForm')
+                    .find('input[type="file"], textarea, button[type="submit"]')
+                    .prop('disabled', !canRevise);
 
-                if (monitoringTabTrigger) {
-                    bootstrap.Tab.getOrCreateInstance(monitoringTabTrigger).show();
+                if (revisiTabTrigger) {
+                    $(revisiTabTrigger)
+                        .prop('disabled', !canRevise)
+                        .toggleClass('disabled', !canRevise)
+                        .attr('title', revisionMessage);
+                }
+
+                let nextTabTrigger = monitoringTabTrigger;
+                if (preferredTab === 'revisi' && canRevise) {
+                    nextTabTrigger = revisiTabTrigger;
+                } else if ((preferredTab === 'revisi' || preferredTab === 'evaluasi') && hasMonitoring && !canRevise) {
+                    nextTabTrigger = evaluasiTabTrigger;
+                }
+
+                if (nextTabTrigger) {
+                    bootstrap.Tab.getOrCreateInstance(nextTabTrigger).show();
                 }
 
                 sopActionModal?.show();

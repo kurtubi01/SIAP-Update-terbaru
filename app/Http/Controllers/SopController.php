@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Sop;
 use App\Models\Subjek;
 use App\Models\Timkerja;
+use App\Services\Monev\SopWorkflowService;
 use App\Services\SopCsvImportService;
 use App\Services\UserActivityService;
 use Illuminate\Http\Request;
@@ -28,7 +29,8 @@ class SopController extends Controller
     ];
 
     public function __construct(
-        private UserActivityService $userActivityService
+        private UserActivityService $userActivityService,
+        private SopWorkflowService $sopWorkflowService
     ) {
     }
 
@@ -263,6 +265,7 @@ class SopController extends Controller
             'selectedUnitId' => $selectedUnitId,
             'selectedUnitLabel' => $selectedUnitLabel,
             'evaluasiCriteriaOptions' => $evaluasiCriteriaOptions,
+            'sopWorkflow' => $this->sopWorkflowService,
         ]);
     }
 
@@ -527,10 +530,12 @@ class SopController extends Controller
 
         $sopInduk = $this->findVisibleSopOrFail((int) $request->id_sop_induk);
 
-        if (!$sopInduk->monitorings()->exists()) {
+        $revisionState = $this->sopWorkflowService->revisionState($sopInduk);
+
+        if (!$revisionState['can_revise']) {
             return redirect()
                 ->route($this->routePrefix() . '.sop.index')
-                ->with('error', 'SOP belum dimonitoring, jadi belum bisa direvisi.');
+                ->with('error', $revisionState['message']);
         }
 
         $logContext = DB::transaction(function () use ($request) {

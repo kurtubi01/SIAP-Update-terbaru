@@ -21,6 +21,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('siap-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
 
     <style>
         :root {
@@ -358,6 +364,26 @@
             color: #1d4ed8;
         }
 
+        .theme-toggle-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            border: 1px solid rgba(219, 231, 245, 0.95);
+            background: rgba(255, 255, 255, 0.88);
+            color: #334155;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .theme-toggle-btn:hover {
+            transform: translateY(-1px);
+            border-color: #c9daf0;
+            box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+        }
+
         main {
             padding: 30px;
         }
@@ -484,6 +510,145 @@
             border: 1px solid rgba(226, 232, 240, 0.95);
             border-radius: 24px;
             box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+        }
+
+        [data-theme="dark"] {
+            color-scheme: dark;
+            --page-bg: #0f172a;
+            --panel-bg: #111827;
+            --panel-border: #263244;
+            --text-main: #e5edf7;
+            --text-soft: #9ca3af;
+            --shadow-soft: 0 22px 48px rgba(0, 0, 0, 0.28);
+        }
+
+        [data-theme="dark"] body {
+            background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+            color: var(--text-main);
+        }
+
+        [data-theme="dark"] .top-navbar {
+            background: rgba(15, 23, 42, 0.9);
+            border-bottom-color: #263244;
+        }
+
+        [data-theme="dark"] .top-title,
+        [data-theme="dark"] .app-page-title,
+        [data-theme="dark"] .cell-title,
+        [data-theme="dark"] .detail-value,
+        [data-theme="dark"] .fw-bold,
+        [data-theme="dark"] .text-dark {
+            color: #e5edf7 !important;
+        }
+
+        [data-theme="dark"] .text-muted,
+        [data-theme="dark"] .cell-subtitle,
+        [data-theme="dark"] .app-page-subtitle,
+        [data-theme="dark"] .soft-note,
+        [data-theme="dark"] .detail-label,
+        [data-theme="dark"] footer {
+            color: #9ca3af !important;
+        }
+
+        [data-theme="dark"] .user-info,
+        [data-theme="dark"] .theme-toggle-btn,
+        [data-theme="dark"] .dropdown-menu,
+        [data-theme="dark"] .app-table-card,
+        [data-theme="dark"] .app-section-card,
+        [data-theme="dark"] .monev-stat-card,
+        [data-theme="dark"] .monev-guidance-card,
+        [data-theme="dark"] .main-card,
+        [data-theme="dark"] .monitoring-card,
+        [data-theme="dark"] .evaluasi-card,
+        [data-theme="dark"] .detail-card,
+        [data-theme="dark"] .card-premium,
+        [data-theme="dark"] .modal-content,
+        [data-theme="dark"] .history-panel,
+        [data-theme="dark"] .sop-action-panel,
+        [data-theme="dark"] .sop-form-shell,
+        [data-theme="dark"] .form-block,
+        [data-theme="dark"] .detail-item,
+        [data-theme="dark"] .detail-wide {
+            background: #111827 !important;
+            border-color: #263244 !important;
+            color: #e5edf7;
+            box-shadow: var(--shadow-soft);
+        }
+
+        [data-theme="dark"] .app-table-toolbar,
+        [data-theme="dark"] .app-table-wrap,
+        [data-theme="dark"] .table-shell,
+        [data-theme="dark"] .detail-head,
+        [data-theme="dark"] .evaluasi-sheet-header,
+        [data-theme="dark"] .locked-sop-card,
+        [data-theme="dark"] .sop-action-summary,
+        [data-theme="dark"] .soft-note {
+            background: #172033 !important;
+            border-color: #2d3a4f !important;
+        }
+
+        [data-theme="dark"] .app-table-modern thead th,
+        [data-theme="dark"] .custom-table thead th,
+        [data-theme="dark"] .evaluasi-sheet-table thead th,
+        [data-theme="dark"] .monitoring-table thead th {
+            background: #1f2a3d !important;
+            color: #dbeafe !important;
+            border-color: #334155 !important;
+        }
+
+        [data-theme="dark"] .app-table-modern tbody tr,
+        [data-theme="dark"] .custom-table tbody tr,
+        [data-theme="dark"] .custom-table tbody tr:nth-child(even),
+        [data-theme="dark"] .monitoring-table td,
+        [data-theme="dark"] .evaluasi-sheet-table td,
+        [data-theme="dark"] .upload-preview-card,
+        [data-theme="dark"] .search-select-menu,
+        [data-theme="dark"] .filter-dropdown-menu {
+            background: #111827 !important;
+            color: #e5edf7 !important;
+            border-color: #334155 !important;
+        }
+
+        [data-theme="dark"] .app-table-modern tbody td,
+        [data-theme="dark"] .custom-table tbody td,
+        [data-theme="dark"] .monitoring-table td,
+        [data-theme="dark"] .evaluasi-sheet-table td,
+        [data-theme="dark"] .table,
+        [data-theme="dark"] .table > :not(caption) > * > * {
+            color: #e5edf7 !important;
+            background-color: #111827 !important;
+            border-color: #334155 !important;
+        }
+
+        [data-theme="dark"] .monev-stat-value,
+        [data-theme="dark"] .guidance-list,
+        [data-theme="dark"] .table td,
+        [data-theme="dark"] .table th {
+            color: #f8fafc !important;
+        }
+
+        [data-theme="dark"] .form-control,
+        [data-theme="dark"] .form-select,
+        [data-theme="dark"] .search-box,
+        [data-theme="dark"] .filter-dropdown-toggle,
+        [data-theme="dark"] .filter-dropdown-search {
+            background: #0f172a !important;
+            color: #e5edf7 !important;
+            border-color: #334155 !important;
+        }
+
+        [data-theme="dark"] .form-control::placeholder,
+        [data-theme="dark"] .search-box input::placeholder {
+            color: #94a3b8 !important;
+        }
+
+        [data-theme="dark"] .dropdown-item {
+            color: #dbeafe;
+        }
+
+        [data-theme="dark"] .dropdown-item:hover {
+            background: #1f2a3d;
+            color: #93c5fd;
         }
 
         @media (max-width: 992px) {
@@ -625,6 +790,20 @@
                             <span>Evaluasi</span>
                         </a>
                     </li>
+                @else
+                    <div class="menu-label">Laporan</div>
+                    <li class="{{ request()->routeIs('viewer.monitoring.*') ? 'active' : '' }}">
+                        <a href="{{ route('viewer.monitoring.index') }}">
+                            <i class="bi bi-file-earmark-bar-graph"></i>
+                            <span>Laporan Monitoring</span>
+                        </a>
+                    </li>
+                    <li class="{{ request()->routeIs('viewer.evaluasi.*') ? 'active' : '' }}">
+                        <a href="{{ route('viewer.evaluasi.index') }}">
+                            <i class="bi bi-clipboard2-check"></i>
+                            <span>Laporan Evaluasi</span>
+                        </a>
+                    </li>
                 @endif
 
                 @if($role === 'admin')
@@ -676,7 +855,11 @@
                     Badan Pusat Statistik Provinsi Banten
                 </div>
 
-                <div class="ms-auto">
+                <div class="ms-auto d-flex align-items-center gap-2">
+                    <button id="themeToggle" class="theme-toggle-btn" type="button" title="Ubah tema" aria-label="Ubah tema">
+                        <i id="themeToggleIcon" class="bi bi-moon-stars"></i>
+                    </button>
+
                     <div class="dropdown">
                         <div class="user-info dropdown-toggle" style="cursor:pointer" data-bs-toggle="dropdown" aria-expanded="false">
                             <div class="text-end d-none d-sm-block">
@@ -725,6 +908,25 @@
         $(document).ready(function () {
             const sidebar = $('#sidebar');
             const btnToggle = $('#btn-toggle-custom');
+            const themeToggle = $('#themeToggle');
+            const themeIcon = $('#themeToggleIcon');
+
+            function setTheme(theme) {
+                const normalizedTheme = theme === 'dark' ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', normalizedTheme);
+                localStorage.setItem('siap-theme', normalizedTheme);
+                themeIcon
+                    .toggleClass('bi-sun', normalizedTheme === 'dark')
+                    .toggleClass('bi-moon-stars', normalizedTheme !== 'dark');
+                themeToggle.attr('title', normalizedTheme === 'dark' ? 'Pakai bright mode' : 'Pakai dark mode');
+            }
+
+            setTheme(document.documentElement.getAttribute('data-theme') || 'light');
+
+            themeToggle.on('click', function () {
+                const currentTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+                setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+            });
 
             btnToggle.on('click', function () {
                 if ($(window).width() > 992) {

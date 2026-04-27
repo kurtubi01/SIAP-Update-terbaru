@@ -4,10 +4,6 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
-// Import Models
-use App\Models\Sop;
-use App\Models\Subjek;
-
 // Import Controllers
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AuthController;
@@ -15,6 +11,7 @@ use App\Http\Controllers\SopController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\EvaluasiController;
+use App\Http\Controllers\MonevReportController;
 use App\Http\Controllers\AccountRecoveryController;
 
 // PERBAIKAN DI SINI: Sesuaikan dengan lokasi folder Admin
@@ -114,20 +111,8 @@ Route::middleware(['auth', 'track.user.activity'])->group(function () {
         Route::get('/sop/{id}/history', [SopController::class, 'history'])->name('sop.history');
         Route::post('/sop/revisi', [SopController::class, 'storeRevisi'])->name('sop.revisi');
         Route::resource('sop', SopController::class);
-        Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
-        Route::get('/monitoring/create', [MonitoringController::class, 'create'])->name('monitoring.create');
-        Route::post('/monitoring', [MonitoringController::class, 'store'])->name('monitoring.store');
-        Route::get('/monitoring/{monitoring}', [MonitoringController::class, 'show'])->name('monitoring.show');
-        Route::get('/monitoring/{monitoring}/edit', [MonitoringController::class, 'edit'])->name('monitoring.edit');
-        Route::put('/monitoring/{monitoring}', [MonitoringController::class, 'update'])->name('monitoring.update');
-        Route::delete('/monitoring/{monitoring}', [MonitoringController::class, 'destroy'])->name('monitoring.destroy');
-        Route::get('/evaluasi', [EvaluasiController::class, 'index'])->name('evaluasi.index');
-        Route::get('/evaluasi/create', [EvaluasiController::class, 'create'])->name('evaluasi.create');
-        Route::post('/evaluasi', [EvaluasiController::class, 'store'])->name('evaluasi.store');
-        Route::get('/evaluasi/{evaluasi}', [EvaluasiController::class, 'show'])->name('evaluasi.show');
-        Route::get('/evaluasi/{evaluasi}/edit', [EvaluasiController::class, 'edit'])->name('evaluasi.edit');
-        Route::put('/evaluasi/{evaluasi}', [EvaluasiController::class, 'update'])->name('evaluasi.update');
-        Route::delete('/evaluasi/{evaluasi}', [EvaluasiController::class, 'destroy'])->name('evaluasi.destroy');
+        Route::resource('monitoring', MonitoringController::class);
+        Route::resource('evaluasi', EvaluasiController::class);
     });
 
     Route::prefix('viewer')->name('viewer.')->group(function () {
@@ -136,8 +121,9 @@ Route::middleware(['auth', 'track.user.activity'])->group(function () {
         Route::get('/dashboard/akses-cepat', [SopController::class, 'aksesCepat'])->name('sop.aksescepat');
         Route::redirect('/sop/akses-cepat', '/viewer/dashboard/akses-cepat');
         Route::get('/sop/{id}/history', [SopController::class, 'history'])->name('sop.history');
-        Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
-        Route::get('/evaluasi', [EvaluasiController::class, 'index'])->name('evaluasi.index');
+        Route::get('/monitoring', [MonevReportController::class, 'monitoring'])->name('monitoring.index');
+        Route::get('/evaluasi', [MonevReportController::class, 'evaluasi'])->name('evaluasi.index');
+        Route::get('/laporan-monev/download', [MonevReportController::class, 'download'])->name('monev.report.download');
     });
 
     // --- PROFILE MANAGEMENT ---

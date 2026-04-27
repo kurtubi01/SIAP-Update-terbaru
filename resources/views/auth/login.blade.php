@@ -165,6 +165,8 @@
     </style>
 </head>
 <body>
+@php($recoveryErrors = $errors->getBag('accountRecovery'))
+@php($shouldOpenRecoveryModal = $recoveryErrors->any() || session('account_recovery_status'))
 
 <div class="card login-card p-4 p-md-5">
     <div class="brand-mark">
@@ -187,12 +189,6 @@
     @if(session('status'))
         <div class="alert alert-success border-0 text-center shadow-sm">
             <i class="bi bi-check-circle me-2"></i> {{ session('status') }}
-        </div>
-    @endif
-
-    @if($errors->has('account_recovery'))
-        <div class="alert alert-danger border-0 text-center shadow-sm">
-            <i class="bi bi-exclamation-triangle me-2"></i> {{ $errors->first('account_recovery') }}
         </div>
     @endif
 
@@ -257,24 +253,46 @@
                     <div class="alert alert-info border-0">
                         Pilih apakah Anda lupa username atau password. Admin akan menerima notifikasi untuk membantu reset akun.
                     </div>
+                    @if(session('account_recovery_status'))
+                        <div class="alert alert-success border-0">
+                            <i class="bi bi-check-circle me-2"></i>{{ session('account_recovery_status') }}
+                        </div>
+                    @endif
+                    @if($recoveryErrors->any())
+                        <div class="alert alert-danger border-0">
+                            <i class="bi bi-exclamation-triangle me-2"></i>{{ $recoveryErrors->first() }}
+                        </div>
+                    @endif
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Nama Lengkap</label>
-                        <input type="text" name="nama" value="{{ old('nama') }}" class="form-control" required>
+                        <input type="text" name="nama" value="{{ old('nama') }}" class="form-control {{ $recoveryErrors->has('nama') ? 'is-invalid' : '' }}" required>
+                        @if($recoveryErrors->has('nama'))
+                            <div class="invalid-feedback">{{ $recoveryErrors->first('nama') }}</div>
+                        @endif
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">NIP</label>
-                        <input type="text" name="nip" value="{{ old('nip') }}" class="form-control" required>
+                        <input type="text" name="nip" value="{{ old('nip') }}" class="form-control {{ $recoveryErrors->has('nip') ? 'is-invalid' : '' }}" required>
+                        @if($recoveryErrors->has('nip'))
+                            <div class="invalid-feedback">{{ $recoveryErrors->first('nip') }}</div>
+                        @endif
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Jenis Permintaan</label>
-                        <select name="jenis_permohonan" class="form-select" required>
+                        <select name="jenis_permohonan" class="form-select {{ $recoveryErrors->has('jenis_permohonan') ? 'is-invalid' : '' }}" required>
                             <option value="username" {{ old('jenis_permohonan') === 'username' ? 'selected' : '' }}>Lupa Username</option>
                             <option value="password" {{ old('jenis_permohonan', 'password') === 'password' ? 'selected' : '' }}>Lupa Password</option>
                         </select>
+                        @if($recoveryErrors->has('jenis_permohonan'))
+                            <div class="invalid-feedback">{{ $recoveryErrors->first('jenis_permohonan') }}</div>
+                        @endif
                     </div>
                     <div class="mb-0">
                         <label class="form-label fw-semibold">Catatan Tambahan</label>
-                        <textarea name="catatan" rows="3" class="form-control" placeholder="Opsional">{{ old('catatan') }}</textarea>
+                        <textarea name="catatan" rows="3" class="form-control {{ $recoveryErrors->has('catatan') ? 'is-invalid' : '' }}" placeholder="Opsional">{{ old('catatan') }}</textarea>
+                        @if($recoveryErrors->has('catatan'))
+                            <div class="invalid-feedback">{{ $recoveryErrors->first('catatan') }}</div>
+                        @endif
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
@@ -314,7 +332,7 @@
     });
 </script>
 @endif
-@if($errors->has('account_recovery'))
+@if($shouldOpenRecoveryModal)
 <script>
     const recoveryModal = new bootstrap.Modal(document.getElementById('accountRecoveryModal'));
     recoveryModal.show();

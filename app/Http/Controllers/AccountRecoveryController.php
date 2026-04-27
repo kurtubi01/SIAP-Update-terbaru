@@ -5,17 +5,26 @@ namespace App\Http\Controllers;
 use App\Models\Notifikasi;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class AccountRecoveryController extends Controller
 {
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'nama' => 'required|string|max:150',
             'nip' => 'required|string|max:50',
             'jenis_permohonan' => 'required|in:username,password',
             'catatan' => 'nullable|string|max:500',
         ]);
+
+        if ($validator->fails()) {
+            return back()
+                ->withErrors($validator, 'accountRecovery')
+                ->withInput($request->only('nama', 'nip', 'jenis_permohonan', 'catatan'));
+        }
+
+        $validated = $validator->validated();
 
         $user = User::query()
             ->where('nip', $validated['nip'])
@@ -26,8 +35,8 @@ class AccountRecoveryController extends Controller
             return back()
                 ->withErrors([
                     'account_recovery' => 'Nama dan NIP tidak cocok dengan data akun. Permintaan tidak dikirim.',
-                ])
-                ->withInput();
+                ], 'accountRecovery')
+                ->withInput($request->only('nama', 'nip', 'jenis_permohonan', 'catatan'));
         }
 
         Notifikasi::create([
@@ -51,6 +60,6 @@ class AccountRecoveryController extends Controller
             ],
         ]);
 
-        return back()->with('status', 'Permintaan berhasil dikirim. Admin akan menerima notifikasi.');
+        return back()->with('account_recovery_status', 'Permintaan berhasil dikirim. Admin akan menerima notifikasi.');
     }
 }

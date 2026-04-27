@@ -2,6 +2,7 @@
 
 @section('content')
 @php($prefix = strtolower(Auth::user()->role ?? 'admin'))
+@php($canEditHistory = in_array($prefix, ['admin', 'operator'], true) && ($evaluasi->sop->status ?? null) === 'aktif')
 
 <style>
     .detail-card {
@@ -86,9 +87,11 @@
         </div>
 
         <div class="d-flex gap-2 flex-wrap">
-            <a href="{{ route($prefix . '.evaluasi.edit', $evaluasi->id_evaluasi) }}" class="btn btn-primary px-4 fw-bold rounded-4">
-                <i class="bi bi-pencil-square me-2"></i>Edit
-            </a>
+            @if($canEditHistory)
+                <a href="{{ route($prefix . '.evaluasi.edit', $evaluasi->id_evaluasi) }}" class="btn btn-primary px-4 fw-bold rounded-4">
+                    <i class="bi bi-pencil-square me-2"></i>Edit
+                </a>
+            @endif
             <a href="{{ route($prefix . '.evaluasi.index') }}" class="btn btn-outline-secondary px-4 fw-bold rounded-4">
                 <i class="bi bi-arrow-left me-2"></i>Kembali
             </a>

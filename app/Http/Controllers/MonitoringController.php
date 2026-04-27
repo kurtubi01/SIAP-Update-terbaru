@@ -72,13 +72,17 @@ class MonitoringController extends Controller
         return $this->visibleSopQuery()->pluck('id_sop')->map(fn ($id) => (int) $id)->all();
     }
 
-    private function findVisibleMonitoringOrFail(int $id): Monitoring
+    private function findVisibleMonitoringOrFail(int $id, bool $activeOnly = false): Monitoring
     {
         $query = Monitoring::with(['sop.subjek.timkerja', 'user.timkerja'])
-            ->where('id_monitoring', $id)
-            ->whereHas('sop', function ($sopQuery) {
+            ->where('id_monitoring', $id);
+
+        if ($activeOnly) {
+            $query->whereHas('sop', function ($sopQuery) {
                 $sopQuery->where('status', 'aktif');
             });
+        }
+
         $this->applyRoleScope($query);
 
         return $query->firstOrFail();
@@ -100,12 +104,29 @@ class MonitoringController extends Controller
         return $this->routePrefix() . '.' . $requestedTarget;
     }
 
+    private function workflowStats(): array
+    {
+        $baseQuery = $this->visibleSopQuery();
+
+        return [
+            'total_active' => (clone $baseQuery)->count(),
+            'waiting_monitoring' => (clone $baseQuery)->doesntHave('monitorings')->count(),
+            'monitored' => (clone $baseQuery)->has('monitorings')->count(),
+            'waiting_evaluasi' => (clone $baseQuery)->has('monitorings')->doesntHave('evaluasis')->count(),
+            'ready_revision' => (clone $baseQuery)->has('monitorings')->has('evaluasis')->count(),
+        ];
+    }
+
     public function index()
     {
+        if (in_array($this->routePrefix(), ['admin', 'operator'], true)) {
+            return view('pages.monitoring.index', [
+                'monitorings' => collect(),
+                'workspaceStats' => $this->workflowStats(),
+            ]);
+        }
+
         $monitorings = Monitoring::with(['sop.subjek.timkerja', 'user.timkerja'])
-            ->whereHas('sop', function ($sopQuery) {
-                $sopQuery->where('status', 'aktif');
-            })
             ->orderBy('id_monitoring', 'desc');
 
         
@@ -169,7 +190,7 @@ class MonitoringController extends Controller
 
     public function destroy(Request $request, $id)
     {
-        $monitoring = $this->findVisibleMonitoringOrFail((int) $id);
+        $monitoring = $this->findVisibleMonitoringOrFail((int) $id, true);
         $targetId = $monitoring->id_sop;
         $monitoring->delete();
 
@@ -192,7 +213,7 @@ class MonitoringController extends Controller
 
     public function edit($id)
     {
-        $monitoring = $this->findVisibleMonitoringOrFail((int) $id);
+        $monitoring = $this->findVisibleMonitoringOrFail((int) $id, true);
         $sops = $this->visibleSopQuery()->get();
         $selectedSop = $sops->firstWhere('id_sop', $monitoring->id_sop);
 
@@ -206,7 +227,7 @@ class MonitoringController extends Controller
 
     public function update(Request $request, $id)
     {
-        $monitoring = $this->findVisibleMonitoringOrFail((int) $id);
+        $monitoring = $this->findVisibleMonitoringOrFail((int) $id, true);
 
         $request->validate([
             'id_sop' => ['required', Rule::in($this->visibleSopIds())],

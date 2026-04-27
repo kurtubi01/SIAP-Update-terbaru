@@ -70,7 +70,7 @@
     <div class="app-page-header">
         <div>
             <h1 class="app-page-title">Manajemen Subjek</h1>
-            <p class="app-page-subtitle">Kelola data subjek dengan tampilan yang lebih konsisten. Tim kerja sekarang bisa dicari lewat search bar dan boleh dikosongkan saat simpan.</p>
+            <p class="app-page-subtitle">Kelola data subjek dengan tampilan yang lebih konsisten. Setiap subjek wajib terhubung ke tim kerja agar alur SOP lebih tertata.</p>
             <nav aria-label="breadcrumb" class="mt-2">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}" class="text-decoration-none text-muted">Dashboard</a></li>
@@ -111,6 +111,18 @@
                 <div>
                     <strong>Gagal!</strong>
                     {{ session('error') }}
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="alert alert-danger border-0 shadow-sm rounded-4 mb-4">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+                <div>
+                    <strong>Validasi gagal.</strong>
+                    {{ $errors->first() }}
                 </div>
             </div>
         </div>
@@ -258,7 +270,7 @@
 
                     <div class="mb-3">
                         <label class="form-label fw-bold small">Tim Kerja</label>
-                        <input type="hidden" name="id_timkerja" class="timkerja-hidden-input">
+                        <input type="hidden" name="id_timkerja" class="timkerja-hidden-input" required>
                         <div class="search-select">
                             <i class="bi bi-search search-select-icon"></i>
                             <input type="text"
@@ -268,7 +280,7 @@
                                 <div class="search-select-list"></div>
                             </div>
                         </div>
-                        <small class="text-muted d-block mt-2">Boleh dikosongkan jika subjek belum ingin dikaitkan ke tim kerja tertentu.</small>
+                        <small class="text-muted d-block mt-2">Wajib pilih tim kerja yang bertanggung jawab atas subjek ini.</small>
                     </div>
 
 
@@ -322,7 +334,7 @@
 
                     <div class="mb-3">
                         <label class="form-label fw-bold small">Tim Kerja</label>
-                        <input type="hidden" name="id_timkerja" class="timkerja-hidden-input" value="{{ $s->id_timkerja }}">
+                        <input type="hidden" name="id_timkerja" class="timkerja-hidden-input" value="{{ $s->id_timkerja }}" required>
                         <div class="search-select">
                             <i class="bi bi-search search-select-icon"></i>
                             <input type="text"
@@ -333,7 +345,7 @@
                                 <div class="search-select-list"></div>
                             </div>
                         </div>
-                        <small class="text-muted d-block mt-2">Boleh dikosongkan jika subjek ini tidak ingin dikaitkan ke tim kerja tertentu.</small>
+                        <small class="text-muted d-block mt-2">Wajib pilih tim kerja yang bertanggung jawab atas subjek ini.</small>
                     </div>
 
                     <div class="mb-3">

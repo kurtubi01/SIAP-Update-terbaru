@@ -136,6 +136,67 @@
     .search-box input::placeholder {
         color: #64748b;
     }
+
+    .monev-workspace {
+        display: grid;
+        gap: 1.25rem;
+    }
+
+    .monev-stat-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .monev-stat-card,
+    .monev-guidance-card {
+        border: 1px solid #dbe5f1;
+        border-radius: 18px;
+        background: #ffffff;
+        padding: 1.1rem;
+        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
+    }
+
+    .monev-stat-value {
+        color: #0f172a;
+        font-size: 1.65rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .monev-stat-label {
+        color: #64748b;
+        font-size: 0.82rem;
+        font-weight: 700;
+        margin-top: 0.5rem;
+    }
+
+    .guidance-grid {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 1rem;
+    }
+
+    .guidance-list {
+        margin: 0;
+        padding-left: 1.1rem;
+        color: #475569;
+        line-height: 1.8;
+    }
+
+    @media (max-width: 1200px) {
+        .monev-stat-grid,
+        .guidance-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .monev-stat-grid,
+        .guidance-grid {
+            grid-template-columns: 1fr;
+        }
+    }
 </style>
 
 <div class="container-fluid app-page-shell py-4">
@@ -152,10 +213,58 @@
         </div>
     </div>
 
+    @if($canManage)
+        @php($stats = $workspaceStats ?? [])
+        <div class="monev-workspace">
+            <div class="monev-stat-grid">
+                <div class="monev-stat-card">
+                    <div class="monev-stat-value">{{ $stats['total_active'] ?? 0 }}</div>
+                    <div class="monev-stat-label">SOP aktif</div>
+                </div>
+                <div class="monev-stat-card">
+                    <div class="monev-stat-value">{{ $stats['waiting_monitoring'] ?? 0 }}</div>
+                    <div class="monev-stat-label">Menunggu monitoring</div>
+                </div>
+                <div class="monev-stat-card">
+                    <div class="monev-stat-value">{{ $stats['monitored'] ?? 0 }}</div>
+                    <div class="monev-stat-label">Sudah dimonitoring</div>
+                </div>
+                <div class="monev-stat-card">
+                    <div class="monev-stat-value">{{ $stats['waiting_evaluasi'] ?? 0 }}</div>
+                    <div class="monev-stat-label">Perlu evaluasi</div>
+                </div>
+                <div class="monev-stat-card">
+                    <div class="monev-stat-value">{{ $stats['ready_revision'] ?? 0 }}</div>
+                    <div class="monev-stat-label">Siap revisi</div>
+                </div>
+            </div>
+
+            <div class="guidance-grid">
+                <div class="monev-guidance-card">
+                    <h5 class="fw-bold mb-2">Halaman Monitoring Sebagai Panel Kerja</h5>
+                    <p class="text-muted mb-3">Tabel monitoring di halaman ini dihilangkan agar admin dan operator fokus memulai monitoring dari Data SOP. Setiap catatan monitoring tetap tersimpan sebagai riwayat dan muncul dalam laporan viewer.</p>
+                    <a href="{{ route($prefix . '.sop.index') }}" class="btn btn-primary fw-bold rounded-3">
+                        <i class="bi bi-file-earmark-richtext me-2"></i>Buka Data SOP
+                    </a>
+                </div>
+
+                <div class="monev-guidance-card">
+                    <h5 class="fw-bold mb-2">Saran Isi Halaman</h5>
+                    <ul class="guidance-list">
+                        <li>Ringkasan SOP yang belum dimonitoring.</li>
+                        <li>Daftar prioritas SOP aktif berdasarkan tahun dan revisi terakhir.</li>
+                        <li>Shortcut ke Data SOP untuk membuat monitoring dari SOP terkait.</li>
+                        <li>Indikator SOP yang sudah bisa lanjut evaluasi.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    @else
+
     <div class="app-table-card">
         <div class="app-table-toolbar">
             <div class="table-top-actions">
-                <div class="soft-note">Daftar ini hanya menampilkan monitoring untuk SOP yang masih aktif. Penambahan monitoring baru dilakukan langsung dari tabel SOP.</div>
+                <div class="soft-note">Daftar ini menjadi history monitoring SOP. Catatan dari versi SOP lama tetap tampil setelah SOP direvisi, sedangkan edit dan hapus hanya tersedia untuk SOP aktif.</div>
                 <div class="d-flex align-items-center gap-3 flex-wrap">
                     <div class="search-box">
                         <i class="bi bi-search text-muted me-2"></i>
@@ -177,7 +286,6 @@
                         <th>Tim Kerja</th>
                         <th>Kriteria</th>
                         <th>Hasil</th>
-                        <th>Status</th>
                         <th class="text-center">{{ $canManage ? 'Aksi' : 'Mode' }}</th>
                     </tr>
                 </thead>
@@ -187,6 +295,7 @@
                         @php($sopRevisi = (int) ($monitoring->sop->revisi_ke ?? 0))
                         @php($healthLabel = in_array($sopStatus, ['kadaluarsa', 'nonaktif'], true) ? 'Expired' : ($sopRevisi > 0 ? 'Review' : 'Aman'))
                         @php($healthClass = $healthLabel === 'Expired' ? 'badge-expired' : ($healthLabel === 'Review' ? 'badge-review' : 'badge-aman'))
+                        @php($canEditHistory = $canManage && ($monitoring->sop->status ?? null) === 'aktif')
                         <tr>
                             <td>
                                 <span class="cell-title">{{ \Illuminate\Support\Carbon::parse($monitoring->tanggal)->format('d M Y') }}</span>
@@ -214,25 +323,26 @@
                                     <span class="cell-subtitle">{{ \Illuminate\Support\Str::limit($monitoring->tindakan ?: 'Tindakan belum diisi', 60) }}</span>
                                 </div>
                             </td>
-                            <td>
-                                <span class="badge-matte {{ $healthClass }}">{{ $healthLabel }}</span>
-                            </td>
                             <td class="text-center">
                                 @if($canManage)
                                     <div class="action-tools">
                                         <a href="{{ route($prefix . '.monitoring.show', $monitoring->id_monitoring) }}" class="icon-btn" title="Lihat monitoring">
                                             <i class="bi bi-eye"></i>
                                         </a>
-                                        <a href="{{ route($prefix . '.monitoring.edit', $monitoring->id_monitoring) }}" class="icon-btn icon-edit" title="Edit monitoring">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
-                                        <form method="POST" action="{{ route($prefix . '.monitoring.destroy', $monitoring->id_monitoring) }}" class="delete-monitoring-form">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="button" class="icon-btn icon-danger btn-delete-monitoring" title="Hapus monitoring">
-                                                <i class="bi bi-trash3"></i>
-                                            </button>
-                                        </form>
+                                        @if($canEditHistory)
+                                            <a href="{{ route($prefix . '.monitoring.edit', $monitoring->id_monitoring) }}" class="icon-btn icon-edit" title="Edit monitoring">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+                                            <form method="POST" action="{{ route($prefix . '.monitoring.destroy', $monitoring->id_monitoring) }}" class="delete-monitoring-form">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="button" class="icon-btn icon-danger btn-delete-monitoring" title="Hapus monitoring">
+                                                    <i class="bi bi-trash3"></i>
+                                                </button>
+                                            </form>
+                                        @else
+                                            <span class="badge-matte badge-readonly">Riwayat</span>
+                                        @endif
                                     </div>
                                 @else
                                     <span class="badge-matte badge-readonly">Read Only</span>
@@ -241,7 +351,7 @@
                         </tr>
                     @empty
                         <tr id="monitoringEmptyState">
-                            <td colspan="7" class="text-center py-5 text-muted">Belum ada data monitoring.</td>
+                            <td colspan="6" class="text-center py-5 text-muted">Belum ada data monitoring.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -278,7 +388,7 @@
             if (keyword !== '' && visibleCount === 0) {
                 const row = document.createElement('tr');
                 row.id = 'monitoringNoSearch';
-                row.innerHTML = '<td colspan="7" class="text-center py-5 text-muted">Pencarian monitoring tidak ditemukan.</td>';
+                row.innerHTML = '<td colspan="6" class="text-center py-5 text-muted">Pencarian monitoring tidak ditemukan.</td>';
                 monitoringTableBody.appendChild(row);
             }
         });
@@ -313,4 +423,5 @@
         });
     });
 </script>
+    @endif
 @endsection

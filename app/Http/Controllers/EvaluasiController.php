@@ -97,13 +97,17 @@ class EvaluasiController extends Controller
         return $this->visibleMonitoringSopQuery()->pluck('id_sop')->map(fn ($id) => (int) $id)->all();
     }
 
-    private function findVisibleEvaluasiOrFail(int $id): Evaluasi
+    private function findVisibleEvaluasiOrFail(int $id, bool $activeOnly = false): Evaluasi
     {
         $query = Evaluasi::with(['sop.subjek.timkerja', 'user.timkerja'])
-            ->where('id_evaluasi', $id)
-            ->whereHas('sop', function ($sopQuery) {
+            ->where('id_evaluasi', $id);
+
+        if ($activeOnly) {
+            $query->whereHas('sop', function ($sopQuery) {
                 $sopQuery->where('status', 'aktif');
             });
+        }
+
         $this->applyRoleScope($query);
 
         return $query->firstOrFail();
@@ -125,12 +129,30 @@ class EvaluasiController extends Controller
         return $this->routePrefix() . '.' . $requestedTarget;
     }
 
+    private function workflowStats(): array
+    {
+        $baseQuery = $this->visibleSopQuery();
+
+        return [
+            'total_active' => (clone $baseQuery)->count(),
+            'waiting_monitoring' => (clone $baseQuery)->doesntHave('monitorings')->count(),
+            'monitored' => (clone $baseQuery)->has('monitorings')->count(),
+            'waiting_evaluasi' => (clone $baseQuery)->has('monitorings')->doesntHave('evaluasis')->count(),
+            'ready_revision' => (clone $baseQuery)->has('monitorings')->has('evaluasis')->count(),
+        ];
+    }
+
     public function index()
     {
-        $evaluasis = Evaluasi::with(['sop', 'user'])
-            ->whereHas('sop', function ($sopQuery) {
-                $sopQuery->where('status', 'aktif');
-            })
+        if (in_array($this->routePrefix(), ['admin', 'operator'], true)) {
+            return view('pages.evaluasi.index', [
+                'evaluasis' => collect(),
+                'kriteriaOptions' => self::KRITERIA,
+                'workspaceStats' => $this->workflowStats(),
+            ]);
+        }
+
+        $evaluasis = Evaluasi::with(['sop.subjek.timkerja', 'user.timkerja'])
             ->orderBy('id_evaluasi', 'desc');
 
         $this->applyRoleScope($evaluasis);
@@ -200,7 +222,7 @@ class EvaluasiController extends Controller
 
     public function destroy(Request $request, $id)
     {
-        $evaluasi = $this->findVisibleEvaluasiOrFail((int) $id);
+        $evaluasi = $this->findVisibleEvaluasiOrFail((int) $id, true);
         $targetId = $evaluasi->id_sop;
         $evaluasi->delete();
 
@@ -225,7 +247,7 @@ class EvaluasiController extends Controller
 
     public function edit($id)
     {
-        $evaluasi = $this->findVisibleEvaluasiOrFail((int) $id);
+        $evaluasi = $this->findVisibleEvaluasiOrFail((int) $id, true);
         $sops = $this->visibleMonitoringSopQuery($evaluasi->id_sop)->get();
         $selectedSop = $sops->firstWhere('id_sop', $evaluasi->id_sop);
 
@@ -240,7 +262,7 @@ class EvaluasiController extends Controller
 
     public function update(Request $request, $id)
     {
-        $evaluasi = $this->findVisibleEvaluasiOrFail((int) $id);
+        $evaluasi = $this->findVisibleEvaluasiOrFail((int) $id, true);
 
         $request->validate([
             'id_sop' => ['required', Rule::in($this->visibleSopIds())],

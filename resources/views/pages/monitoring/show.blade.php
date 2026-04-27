@@ -2,6 +2,7 @@
 
 @section('content')
 @php($prefix = strtolower(Auth::user()->role ?? 'admin'))
+@php($canEditHistory = in_array($prefix, ['admin', 'operator'], true) && ($monitoring->sop->status ?? null) === 'aktif')
 
 <style>
     .detail-card {
@@ -80,9 +81,11 @@
         </div>
 
         <div class="d-flex gap-2 flex-wrap">
-            <a href="{{ route($prefix . '.monitoring.edit', $monitoring->id_monitoring) }}" class="btn btn-primary px-4 fw-bold rounded-4">
-                <i class="bi bi-pencil-square me-2"></i>Edit
-            </a>
+            @if($canEditHistory)
+                <a href="{{ route($prefix . '.monitoring.edit', $monitoring->id_monitoring) }}" class="btn btn-primary px-4 fw-bold rounded-4">
+                    <i class="bi bi-pencil-square me-2"></i>Edit
+                </a>
+            @endif
             <a href="{{ route($prefix . '.monitoring.index') }}" class="btn btn-outline-secondary px-4 fw-bold rounded-4">
                 <i class="bi bi-arrow-left me-2"></i>Kembali
             </a>
