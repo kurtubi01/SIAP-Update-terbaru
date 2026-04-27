@@ -15,6 +15,7 @@ use App\Http\Controllers\SopController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\EvaluasiController;
+use App\Http\Controllers\AccountRecoveryController;
 
 // PERBAIKAN DI SINI: Sesuaikan dengan lokasi folder Admin
 use App\Http\Controllers\Admin\HomeController;
@@ -47,6 +48,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [\App\Http\Controllers\Auth\RegisteredUserController::class, 'store']);
     Route::get('/forgot-password', [\App\Http\Controllers\Auth\PasswordResetLinkController::class, 'create'])->name('password.request');
     Route::post('/forgot-password', [\App\Http\Controllers\Auth\PasswordResetLinkController::class, 'store'])->name('password.email');
+    Route::post('/account-recovery-request', [AccountRecoveryController::class, 'store'])->name('account.recovery.store');
     Route::get('/reset-password/{token}', [\App\Http\Controllers\Auth\NewPasswordController::class, 'create'])->name('password.reset');
     Route::post('/reset-password', [\App\Http\Controllers\Auth\NewPasswordController::class, 'store'])->name('password.store');
 });
@@ -76,6 +78,8 @@ Route::middleware(['auth', 'track.user.activity'])->group(function () {
 
         // Management User & Monitoring
         Route::resource('user', UserController::class);
+        Route::post('/user/{id}/reset-credentials', [UserController::class, 'resetCredentials'])->name('user.resetCredentials');
+        Route::delete('/notifications/account-recovery/{notificationId}', [UserController::class, 'dismissRecoveryNotification'])->name('notifications.accountRecovery.dismiss');
         Route::resource('monitoring', MonitoringController::class);
         Route::resource('evaluasi', EvaluasiController::class);
 
@@ -89,6 +93,8 @@ Route::middleware(['auth', 'track.user.activity'])->group(function () {
         Route::redirect('/sop/akses-cepat', '/admin/dashboard/akses-cepat');
         Route::get('/sop/{id}/history', [SopController::class, 'history'])->name('sop.history');
         Route::post('/sop/revisi', [SopController::class, 'storeRevisi'])->name('sop.revisi');
+        Route::get('/sop/import/massal', [SopController::class, 'importForm'])->name('sop.import.form');
+        Route::post('/sop/import/massal', [SopController::class, 'importMassal'])->name('sop.import.store');
 
         // Rute untuk Bulk Delete (Hapus Banyak)
         Route::delete('/sop/bulk-delete', [SopController::class, 'bulkDelete'])->name('sop.bulkDelete');
@@ -160,9 +166,14 @@ Route::middleware(['auth', 'track.user.activity'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::get('/view-pdf/{filename}', function ($filename) {
-        $path = 'uploads/sop/' . $filename;
+        $candidatePaths = [
+            'uploads/sop/' . $filename,
+            'sop/' . $filename,
+        ];
 
-        if (!Storage::disk('public')->exists($path)) {
+        $path = collect($candidatePaths)->first(fn ($item) => Storage::disk('public')->exists($item));
+
+        if (!$path) {
             abort(404, 'File tidak ditemukan King!');
         }
 

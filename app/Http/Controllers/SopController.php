@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Sop;
 use App\Models\Subjek;
 use App\Models\Timkerja;
+use App\Services\SopCsvImportService;
 use App\Services\UserActivityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -14,7 +15,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
-
 class SopController extends Controller
 {
     private const SOP_FILE_MAX_KB = 51200;
@@ -45,6 +45,11 @@ class SopController extends Controller
     private function isOperator(): bool
     {
         return $this->routePrefix() === 'operator';
+    }
+
+    private function ensureAdminAccess(): void
+    {
+        abort_unless($this->routePrefix() === 'admin', 403);
     }
 
     private function applyOperatorScope($query)
@@ -344,6 +349,43 @@ class SopController extends Controller
         $subjek = $this->visibleSubjekQuery()->get();
         $units = $this->visibleUnitsQuery()->get();
         return view('pages.admin.sop.create', compact('subjek', 'units'));
+    }
+
+    public function importForm()
+    {
+        $this->ensureAdminAccess();
+
+        return view('pages.admin.sop.import');
+    }
+
+    public function importMassal(Request $request)
+    {
+        $this->ensureAdminAccess();
+
+        $request->validate([
+            'excel_file' => 'required|file|mimes:csv,txt',
+            'pdf_files' => 'nullable|array',
+            'pdf_files.*' => 'nullable|file|mimes:pdf|max:' . self::SOP_FILE_MAX_KB,
+        ]);
+
+        $import = new SopCsvImportService(
+            $request->file('pdf_files', []),
+            Auth::id()
+        );
+
+        $summary = $import->importFromPath($request->file('excel_file')->getRealPath());
+
+        $this->userActivityService->log(
+            $request->user(),
+            'Import SOP massal',
+            'Import SOP selesai dengan hasil ' . $summary['success_count'] . ' berhasil dan ' . $summary['failed_count'] . ' gagal.',
+            $request
+        );
+
+        return redirect()
+            ->back()
+            ->with('success', 'Import SOP selesai. ' . $summary['success_count'] . ' data berhasil diproses, ' . $summary['failed_count'] . ' data gagal.')
+            ->with('import_summary', $summary);
     }
 
     public function store(Request $request)

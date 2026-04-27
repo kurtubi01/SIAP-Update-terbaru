@@ -42,6 +42,13 @@
     background:#f8fafc;
     color:#2563eb;
 }
+.request-card {
+    border: 1px solid #dbe5f1;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    padding: 16px;
+    height: 100%;
+}
 </style>
 
 <div class="container-fluid app-page-shell py-4">
@@ -75,6 +82,57 @@
     @if(session('success'))
         <div class="alert alert-success border-0 shadow-sm rounded-4">
             {{ session('success') }}
+        </div>
+    @endif
+
+    @if(($accountRecoveryNotifications ?? collect())->isNotEmpty())
+        <div class="app-table-card mb-4">
+            <div class="app-table-toolbar">
+                <div class="soft-note">Permintaan lupa username/password dari halaman login masuk ke sini. Admin hanya bisa mengubah field yang diminta pada notifikasi. Setelah diproses, notifikasi akan hilang dari daftar.</div>
+            </div>
+            <div class="app-table-wrap">
+                <div class="row g-3">
+                    @foreach($accountRecoveryNotifications as $notification)
+                        @php($meta = $notification->metadata ?? [])
+                        <div class="col-12 col-lg-6">
+                            <div class="request-card">
+                                <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                                    <div>
+                                        <div class="fw-bold text-dark">{{ $meta['nama'] ?? ($notification->user->nama ?? 'Pengguna') }}</div>
+                                        <div class="small text-muted">NIP: {{ $meta['nip'] ?? ($notification->user->nip ?? '-') }}</div>
+                                    </div>
+                                    <span class="badge bg-warning text-dark text-uppercase">{{ ($meta['jenis_permohonan'] ?? 'akun') === 'username' ? 'Lupa Username' : 'Lupa Password' }}</span>
+                                </div>
+                                <div class="small mb-2">{{ $notification->pesan }}</div>
+                                <div class="small text-muted mb-3">{{ $meta['catatan'] ?? 'Tanpa catatan tambahan.' }}</div>
+                                @if($notification->user)
+                                    <form action="{{ route('admin.user.resetCredentials', $notification->user->id_user) }}" method="POST">
+                                        @csrf
+                                        <input type="hidden" name="notification_id" value="{{ $notification->id_notifikasi }}">
+                                        @if(($meta['jenis_permohonan'] ?? null) === 'username')
+                                            <label class="small fw-bold mb-2">Username Baru</label>
+                                            <input type="text" name="new_username" value="{{ $notification->user->username }}" class="form-control form-control-sm mb-2" required>
+                                            <button type="submit" class="btn btn-primary btn-sm fw-bold">Ubah Username</button>
+                                        @else
+                                            <label class="small fw-bold mb-2">Password Baru</label>
+                                            <input type="password" name="new_password" class="form-control form-control-sm mb-2" minlength="6" required>
+                                            <input type="password" name="new_password_confirmation" class="form-control form-control-sm mb-2" minlength="6" placeholder="Konfirmasi password baru" required>
+                                            <button type="submit" class="btn btn-primary btn-sm fw-bold">Ubah Password</button>
+                                        @endif
+                                    </form>
+                                @else
+                                    <div class="text-danger small fw-bold">User belum cocok dengan data nama/NIP yang dikirim.</div>
+                                    <form action="{{ route('admin.notifications.accountRecovery.dismiss', $notification->id_notifikasi) }}" method="POST" class="mt-2">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-outline-danger btn-sm fw-bold">Hapus Notifikasi Ini</button>
+                                    </form>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
         </div>
     @endif
 
@@ -284,23 +342,24 @@
                             <label class="small fw-bold">Username</label>
 
                             <input type="text"
-                                   name="username"
                                    value="{{ $u->username }}"
                                    class="form-control bg-light border-0 py-2"
-                                   required>
+                                   readonly>
+                            <small class="text-muted d-block mt-2">Username hanya bisa diubah lewat notifikasi lupa akun.</small>
                         </div>
 
                     </div>
 
                     <div class="mb-3">
                         <label class="small fw-bold">
-                            Password (isi jika ganti)
+                            Password
                         </label>
 
-                        <input type="password"
-                               name="password"
-                               minlength="6"
-                               class="form-control bg-light border-0 py-2">
+                        <input type="text"
+                               value="Disembunyikan"
+                               class="form-control bg-light border-0 py-2"
+                               readonly>
+                        <small class="text-muted d-block mt-2">Password hanya bisa diubah lewat notifikasi lupa akun.</small>
                     </div>
 
                     <div class="row">
@@ -662,7 +721,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         form.addEventListener('submit', function (event) {
             const nama = form.querySelector('[name="nama"]')?.value.trim() || '';
-            const username = form.querySelector('[name="username"]')?.value.trim() || '';
             const nip = form.querySelector('[name="nip"]')?.value.trim() || '';
             const passwordInput = form.querySelector('[name="password"]');
             const password = passwordInput?.value || '';
@@ -670,12 +728,12 @@ document.addEventListener('DOMContentLoaded', function () {
             const timkerja = timkerjaSelect?.value || '';
             const formType = form.dataset.userForm;
 
-            if (!nama || !username || !nip) {
+            if (!nama || !nip) {
                 event.preventDefault();
 
                 Swal.fire({
                     title: 'Data belum lengkap',
-                    text: 'Nama, username, dan NIP wajib diisi.',
+                    text: formType === 'create' ? 'Nama, username, dan NIP wajib diisi.' : 'Nama dan NIP wajib diisi.',
                     icon: 'warning',
                     confirmButtonText: 'OK'
                 });
@@ -711,19 +769,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            if (formType === 'edit' && password.length > 0 && password.length < 6) {
-                event.preventDefault();
-
-                Swal.fire({
-                    title: 'Password terlalu pendek',
-                    text: 'Jika ingin mengganti password, isi minimal 6 karakter.',
-                    icon: 'warning',
-                    confirmButtonText: 'OK'
-                });
-
-                passwordInput?.focus();
-                return;
-            }
         });
     });
 

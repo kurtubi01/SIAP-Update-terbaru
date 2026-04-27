@@ -42,7 +42,13 @@ class AuthController extends Controller
             })
             ->first();
 
-        if ($user && ($user->password === $request->password || Hash::check($request->password, $user->password))) {
+        if (!$user) {
+            return back()->withErrors([
+                'username' => 'Username tidak ditemukan.',
+            ])->onlyInput('username');
+        }
+
+        if ($user->password === $request->password || Hash::check($request->password, $user->password)) {
             Auth::login($user);
 
             $request->session()->regenerate();
@@ -54,7 +60,7 @@ class AuthController extends Controller
         }
 
         return back()->withErrors([
-            'username' => 'Username atau password salah.',
+            'password' => 'Password yang Anda masukkan salah.',
         ])->onlyInput('username');
     }
 

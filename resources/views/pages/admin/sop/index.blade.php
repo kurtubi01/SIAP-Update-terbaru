@@ -774,9 +774,16 @@
             </div>
 
             @if($canManage)
-                <a href="{{ route($prefix . '.sop.create') }}" class="btn btn-primary px-4 py-2 fw-bold shadow-sm" style="border-radius: 12px; background: #0d47a1; border: none;">
-                    <i class="bi bi-plus-lg me-2"></i>Tambah SOP Baru
-                </a>
+                <div class="d-flex gap-2 flex-wrap">
+                    @if($prefix === 'admin')
+                        <a href="{{ route($prefix . '.sop.import.form') }}" class="btn btn-outline-primary px-4 py-2 fw-bold shadow-sm" style="border-radius: 12px;">
+                            <i class="bi bi-file-earmark-excel me-2"></i>Import Massal
+                        </a>
+                    @endif
+                    <a href="{{ route($prefix . '.sop.create') }}" class="btn btn-primary px-4 py-2 fw-bold shadow-sm" style="border-radius: 12px; background: #0d47a1; border: none;">
+                        <i class="bi bi-plus-lg me-2"></i>Tambah SOP Baru
+                    </a>
+                </div>
             @endif
         </div>
     </div>

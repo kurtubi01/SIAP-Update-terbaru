@@ -177,6 +177,54 @@
         background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
     }
 
+    .viewer-report-card {
+        border-radius: 26px;
+        border: 1px solid #dbe5f1;
+        background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+        overflow: hidden;
+    }
+
+    .viewer-report-head {
+        padding: 24px 26px;
+        background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+        color: #fff;
+    }
+
+    .viewer-report-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .viewer-report-table th,
+    .viewer-report-table td {
+        border: 1px solid #d8e2f0;
+        padding: 14px 12px;
+        vertical-align: top;
+        font-size: 0.88rem;
+    }
+
+    .viewer-report-table th {
+        background: #eef4ff;
+        color: #1e3a8a;
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 0.78rem;
+    }
+
+    .report-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0.45rem 0.8rem;
+        border-radius: 999px;
+        border: 1px solid #dbeafe;
+        background: #eff6ff;
+        color: #1d4ed8;
+        font-weight: 700;
+        font-size: 0.78rem;
+    }
+
     @media (max-width: 991.98px) {
         .top-header {
             padding: 20px;
@@ -288,6 +336,106 @@
             </div>
         </div>
     </div>
+
+    @if($dashboardRole === 'admin' && ($pendingAccountRecoveryCount ?? 0) > 0)
+        <div class="card dashboard-chart-card p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+                <div>
+                    <h5 class="fw-bold text-dark mb-1">Notifikasi Bantuan Akun</h5>
+                    <div class="text-muted small">Permintaan lupa username/password dari halaman login masuk ke admin di sini.</div>
+                </div>
+                <span class="report-chip"><i class="bi bi-bell-fill"></i> {{ $pendingAccountRecoveryCount }} permintaan aktif</span>
+            </div>
+            <div class="row g-3">
+                @foreach($accountRecoveryNotifications as $item)
+                    @php($meta = $item->metadata ?? [])
+                    <div class="col-12 col-lg-6">
+                        <div class="border rounded-4 p-3 h-100 bg-light-subtle">
+                            <div class="fw-bold text-dark">{{ $meta['nama'] ?? ($item->user->nama ?? 'Pengguna') }}</div>
+                            <div class="text-muted small mb-2">NIP: {{ $meta['nip'] ?? ($item->user->nip ?? '-') }}</div>
+                            <div class="small mb-2">{{ $item->pesan }}</div>
+                            <div class="small text-muted mb-3">{{ $meta['catatan'] ?? 'Tanpa catatan tambahan.' }}</div>
+                            @if($item->user)
+                                <a href="{{ route('admin.user.index') }}" class="btn btn-sm btn-primary fw-bold">Proses di Manajemen User</a>
+                            @else
+                                <span class="text-danger small fw-bold">User belum teridentifikasi dari nama/NIP.</span>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
+    @if($dashboardRole === 'viewer')
+        <div class="viewer-report-card mb-4">
+            <div class="viewer-report-head">
+                <div class="text-uppercase fw-bold small opacity-75">Laporan Viewer</div>
+                <h4 class="fw-bold mb-1">Laporan Hasil Monitoring dan Evaluasi SOP</h4>
+                <div class="opacity-75">Ringkasan baca untuk dokumen yang sudah dimonitoring atau dievaluasi.</div>
+            </div>
+            <div class="p-4">
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="report-chip"><i class="bi bi-clipboard2-pulse"></i> {{ $totalMonitoring ?? 0 }} monitoring</span>
+                    <span class="report-chip"><i class="bi bi-ui-checks-grid"></i> {{ $totalEvaluasi ?? 0 }} evaluasi</span>
+                    <span class="report-chip"><i class="bi bi-file-earmark-text"></i> {{ $totalSop ?? 0 }} dokumen</span>
+                </div>
+                <div class="viewer-report-table table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Nomor dan Nama SOP</th>
+                                <th>Subjek</th>
+                                <th>Status Monitoring</th>
+                                <th>Status Evaluasi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($viewerReportItems as $index => $item)
+                                <tr>
+                                    <td>{{ $index + 1 }}</td>
+                                    <td>
+                                        <div class="fw-bold">{{ $item->nomor_sop }}</div>
+                                        <div>{{ $item->nama_sop }}</div>
+                                    </td>
+                                    <td>
+                                        {{ $item->subjek?->nama_subjek ?? '-' }}
+                                        @if($item->subjek?->timkerja?->nama_timkerja)
+                                            <div class="text-muted small">{{ $item->subjek->timkerja->nama_timkerja }}</div>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($item->monitorings_count > 0)
+                                            <span class="text-success fw-bold">Sudah dimonitoring</span>
+                                        @else
+                                            <span class="text-muted">Belum ada monitoring</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($item->evaluasis_count > 0)
+                                            <span class="text-primary fw-bold">Sudah dievaluasi</span>
+                                        @else
+                                            <span class="text-muted">Belum ada evaluasi</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">Belum ada data laporan monitoring/evaluasi yang bisa ditampilkan.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <a href="{{ route('viewer.monitoring.index') }}" class="btn btn-outline-success fw-bold">Lihat Monitoring</a>
+                    <a href="{{ route('viewer.evaluasi.index') }}" class="btn btn-outline-primary fw-bold">Lihat Evaluasi</a>
+                    <a href="{{ route('viewer.sop.aksescepat') }}" class="btn btn-outline-dark fw-bold">Buka Repositori SOP</a>
+                </div>
+            </div>
+        </div>
+    @endif
 
     @if(!empty($dashboardTheme['quickLinks']))
         <div class="mb-4">

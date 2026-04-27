@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Evaluasi;
 use App\Models\Monitoring;
+use App\Models\Notifikasi;
 use App\Models\Sop;
 use App\Models\Subjek;
 use Illuminate\Support\Facades\Auth;
@@ -74,6 +75,32 @@ class HomeController extends Controller
             ->limit(5)
             ->get();
 
+        $viewerReportItems = (clone $visibleSopQuery)
+            ->with(['latestMonitoring.user', 'latestEvaluasi.user', 'subjek.timkerja'])
+            ->withCount(['monitorings', 'evaluasis'])
+            ->where(function ($query) {
+                $query->whereHas('monitorings')
+                    ->orWhereHas('evaluasis');
+            })
+            ->orderByDesc('id_sop')
+            ->limit(4)
+            ->get();
+
+        $accountRecoveryNotifications = $role === 'admin'
+            ? Notifikasi::with('user')
+                ->where('tipe', 'account_recovery')
+                ->where('status_tindak_lanjut', false)
+                ->latest()
+                ->limit(5)
+                ->get()
+            : collect();
+
+        $pendingAccountRecoveryCount = $role === 'admin'
+            ? Notifikasi::where('tipe', 'account_recovery')
+                ->where('status_tindak_lanjut', false)
+                ->count()
+            : 0;
+
         $scopeLabel = match ($role) {
             'admin' => 'Semua tim kerja dan seluruh repositori SOP',
             'operator' => 'Ringkasan operasional untuk tim kerja Anda',
@@ -92,7 +119,10 @@ class HomeController extends Controller
             'totalMonitoring',
             'totalEvaluasi',
             'recentSops',
-            'scopeLabel'
+            'scopeLabel',
+            'viewerReportItems',
+            'accountRecoveryNotifications',
+            'pendingAccountRecoveryCount'
         ));
     }
 }

@@ -151,6 +151,17 @@
             font-size: 0.85rem;
             margin-bottom: 20px;
         }
+
+        .link-action {
+            color: #1565c0;
+            font-weight: 700;
+            font-size: 0.88rem;
+            text-decoration: none;
+        }
+
+        .link-action:hover {
+            color: #0d47a1;
+        }
     </style>
 </head>
 <body>
@@ -173,25 +184,52 @@
         </div>
     @endif
 
+    @if(session('status'))
+        <div class="alert alert-success border-0 text-center shadow-sm">
+            <i class="bi bi-check-circle me-2"></i> {{ session('status') }}
+        </div>
+    @endif
+
+    @if($errors->has('account_recovery'))
+        <div class="alert alert-danger border-0 text-center shadow-sm">
+            <i class="bi bi-exclamation-triangle me-2"></i> {{ $errors->first('account_recovery') }}
+        </div>
+    @endif
+
     <form action="{{ route('login.post') }}" method="POST">
         @csrf
         <div class="mb-3">
             <label class="form-label fw-semibold">Username</label>
             <div class="input-group">
                 <span class="input-group-text border-end-0"><i class="bi bi-person text-primary"></i></span>
-                <input type="text" name="username" class="form-control border-start-0" placeholder="Masukkan username" required autofocus>
+                <input type="text" name="username" value="{{ old('username') }}" class="form-control border-start-0 @error('username') is-invalid @enderror" placeholder="Masukkan username" required autofocus>
             </div>
+            @error('username')
+                <div class="text-danger small mt-2">{{ $message }}</div>
+            @enderror
         </div>
 
         <div class="mb-4">
             <label class="form-label fw-semibold">Password</label>
             <div class="input-group">
                 <span class="input-group-text border-end-0"><i class="bi bi-lock text-primary"></i></span>
-                <input type="password" name="password" id="password" class="form-control border-start-0 border-end-0" placeholder="••••••••" required>
+                <input type="password" name="password" id="password" class="form-control border-start-0 border-end-0 @error('password') is-invalid @enderror" placeholder="Masukkan password" required>
                 <span class="input-group-text border-start-0 cursor-pointer" onclick="togglePassword()">
                     <i class="bi bi-eye-slash text-muted" id="toggleIcon"></i>
                 </span>
             </div>
+            @error('password')
+                <div class="text-danger small mt-2">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+            <a href="#" class="link-action" data-bs-toggle="modal" data-bs-target="#accountRecoveryModal">
+                Lupa username atau password?
+            </a>
+            <a href="{{ route('password.request') }}" class="link-action">
+                Reset via email
+            </a>
         </div>
 
         <button type="submit" class="btn btn-bps w-100 shadow-sm">
@@ -203,6 +241,48 @@
         <small class="text-muted" style="font-size: 0.75rem; letter-spacing: 0.5px;">
             &copy; 2026 BPS PROVINSI BANTEN
         </small>
+    </div>
+</div>
+
+<div class="modal fade" id="accountRecoveryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold mb-0">Permintaan Bantuan Akun</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ route('account.recovery.store') }}">
+                @csrf
+                <div class="modal-body pt-3">
+                    <div class="alert alert-info border-0">
+                        Pilih apakah Anda lupa username atau password. Admin akan menerima notifikasi untuk membantu reset akun.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Nama Lengkap</label>
+                        <input type="text" name="nama" value="{{ old('nama') }}" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">NIP</label>
+                        <input type="text" name="nip" value="{{ old('nip') }}" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Jenis Permintaan</label>
+                        <select name="jenis_permohonan" class="form-select" required>
+                            <option value="username" {{ old('jenis_permohonan') === 'username' ? 'selected' : '' }}>Lupa Username</option>
+                            <option value="password" {{ old('jenis_permohonan', 'password') === 'password' ? 'selected' : '' }}>Lupa Password</option>
+                        </select>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label fw-semibold">Catatan Tambahan</label>
+                        <textarea name="catatan" rows="3" class="form-control" placeholder="Opsional">{{ old('catatan') }}</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-bps px-4">Kirim Permintaan</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -222,15 +302,22 @@
         }
     }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-@if($errors->has('username'))
+@if($errors->has('username') || $errors->has('password'))
 <script>
     Swal.fire({
         icon: 'error',
         title: 'Login Gagal',
-        text: '{{ $errors->first('username') }}',
+        text: '{{ $errors->first('username') ?: $errors->first('password') }}',
         confirmButtonColor: '#1976d2'
     });
+</script>
+@endif
+@if($errors->has('account_recovery'))
+<script>
+    const recoveryModal = new bootstrap.Modal(document.getElementById('accountRecoveryModal'));
+    recoveryModal.show();
 </script>
 @endif
 </body>
