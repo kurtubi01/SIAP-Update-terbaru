@@ -283,14 +283,28 @@
 
     .monev-pill {
         display: inline-flex;
+        flex-direction: column;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
         border-radius: 999px;
-        padding: 0.55rem 0.95rem;
+        padding: 0.65rem 0.95rem;
         font-weight: 800;
         border: 1px solid transparent;
         background: #f8fafc;
         color: #475569;
+        min-width: 100px;
+    }
+    .monev-pill .status-line {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .monev-pill .status-date {
+        display: block;
+        font-size: 0.74rem;
+        line-height: 1.4;
+        color: inherit;
+        font-weight: 600;
     }
     .monev-pill.is-done {
         background: #eefbf3;
@@ -821,6 +835,7 @@
 
         <div class="table-container">
             <div class="table-responsive">
+
                 {{-- Form untuk Bulk Delete --}}
                 <form id="formBulkDelete" action="{{ $canBulkDelete ? route('admin.sop.bulkDelete') : '#' }}" method="POST">
                     @csrf
@@ -937,13 +952,23 @@
                                                 data-evaluasi-catatan="{{ $latestEvaluasi?->catatan }}"
                                                 data-evaluasi-kriteria='@json($latestEvaluasi?->kriteria_evaluasi ?? [])'
                                                 title="Buka form monitoring SOP">
-                                            <i class="bi {{ $item->monitorings_count > 0 ? 'bi-check2-circle' : 'bi-x-circle' }}"></i>
-                                            <span>{{ $item->monitorings_count > 0 ? 'Sudah' : 'Belum' }}</span>
+                                            <span class="status-line">
+                                                <i class="bi {{ $item->monitorings_count > 0 ? 'bi-check2-circle' : 'bi-x-circle' }}"></i>
+                                                <span>{{ $item->monitorings_count > 0 ? 'Sudah' : 'Belum' }}</span>
+                                            </span>
+                                            @if($item->monitorings_count > 0 && $latestMonitoring?->tanggal)
+                                                <span class="status-date">{{ \Carbon\Carbon::parse($latestMonitoring->tanggal)->locale('id')->isoFormat('D MMMM YYYY') }}</span>
+                                            @endif
                                         </button>
                                     @elseif($item->monitorings_count > 0)
                                         <span class="monev-pill is-done" title="Sudah dimonitoring">
-                                            <i class="bi bi-check2-circle"></i>
-                                            <span>Sudah</span>
+                                            <span class="status-line">
+                                                <i class="bi bi-check2-circle"></i>
+                                                <span>Sudah</span>
+                                            </span>
+                                            @if($latestMonitoring?->tanggal)
+                                                <span class="status-date">{{ \Carbon\Carbon::parse($latestMonitoring->tanggal)->locale('id')->isoFormat('D MMMM YYYY') }}</span>
+                                            @endif
                                         </span>
                                     @else
                                         <span class="monev-pill is-empty" title="Belum dimonitoring">
@@ -955,13 +980,20 @@
                                 <td class="text-center">
                                     @if($latestEvaluasi)
                                         <span class="monev-pill is-done" title="Sudah dievaluasi">
-                                            <i class="bi bi-check2-circle"></i>
-                                            <span>Sudah</span>
+                                            <span class="status-line">
+                                                <i class="bi bi-check2-circle"></i>
+                                                <span>Sudah</span>
+                                            </span>
+                                            @if($latestEvaluasi->tanggal)
+                                                <span class="status-date">{{ \Carbon\Carbon::parse($latestEvaluasi->tanggal)->locale('id')->isoFormat('D MMMM YYYY') }}</span>
+                                            @endif
                                         </span>
                                     @else
                                         <span class="monev-pill is-empty" title="Belum dievaluasi">
-                                            <i class="bi bi-x-circle"></i>
-                                            <span>Belum</span>
+                                            <span class="status-line">
+                                                <i class="bi bi-x-circle"></i>
+                                                <span>Belum</span>
+                                            </span>
                                         </span>
                                     @endif
                                 </td>
@@ -999,7 +1031,7 @@
                                                     data-evaluasi-kriteria='@json($latestEvaluasi?->kriteria_evaluasi ?? [])'
                                                 title="Kelola SOP">
                                                 <i class="bi bi-ui-radios-grid"></i>
-                                                <span>{{ $revisionState['can_revise'] ? 'Revisi SOP' : 'Lengkapi Monev' }}</span>
+                                                <span>Monevisasi</span>
                                             </button>
                                         @endif
                                         <a href="{{ route('view.pdf', basename($item->link_sop)) }}"

@@ -30,13 +30,13 @@
 
     <style>
         :root {
-            --sidebar-bg: #4b2e2a;
-            --sidebar-surface: rgba(255, 255, 255, 0.08);
-            --sidebar-border: rgba(255, 179, 71, 0.22);
-            --sidebar-text: rgba(255, 244, 230, 0.86);
-            --sidebar-text-strong: #fff7ed;
-            --sidebar-accent: #f97316;
-            --sidebar-accent-soft: linear-gradient(135deg, rgba(249, 115, 22, 0.22), rgba(251, 191, 36, 0.22));
+            --sidebar-bg: #0f172a;
+            --sidebar-surface: rgba(148, 163, 184, 0.08);
+            --sidebar-border: rgba(148, 163, 184, 0.18);
+            --sidebar-text: rgba(226, 232, 240, 0.95);
+            --sidebar-text-strong: #ffffff;
+            --sidebar-accent: #3b82f6;
+            --sidebar-accent-soft: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(96, 165, 250, 0.18));
             --sidebar-width: 292px;
             --top-navbar-height: 78px;
             --page-bg: #f8fbff;
@@ -45,7 +45,7 @@
             --text-main: #0f172a;
             --text-soft: #64748b;
             --shadow-soft: 0 22px 48px rgba(15, 23, 42, 0.08);
-            --shadow-sidebar: 18px 0 42px rgba(37, 99, 235, 0.12);
+            --shadow-sidebar: 18px 0 42px rgba(15, 23, 42, 0.22);
             --radius-md: 16px;
             --radius-lg: 20px;
         }
@@ -75,11 +75,11 @@
             display: flex;
             flex-direction: column;
             background:
-                radial-gradient(circle at top, rgba(255, 190, 92, 0.22), transparent 24%),
-                linear-gradient(180deg, #5f352f 0%, #432521 52%, var(--sidebar-bg) 100%);
+                radial-gradient(circle at top, rgba(59, 130, 246, 0.16), transparent 24%),
+                linear-gradient(180deg, #0f172a 0%, #12283a 55%, var(--sidebar-bg) 100%);
             color: var(--sidebar-text);
-            box-shadow: 18px 0 42px rgba(67, 37, 33, 0.28);
-            border-right: 1px solid rgba(255, 191, 105, 0.16);
+            box-shadow: var(--shadow-sidebar);
+            border-right: 1px solid var(--sidebar-border);
             transition: transform 0.3s ease, width 0.3s ease;
         }
 
@@ -99,8 +99,8 @@
             height: 60px;
             flex-shrink: 0;
             border-radius: 18px;
-            background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 10px 24px rgba(249, 115, 22, 0.18);
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65), 0 10px 24px rgba(59, 130, 246, 0.18);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -116,7 +116,7 @@
 
         .brand-name {
             display: block;
-            color: #fffaf5;
+            color: #f5f6ff;
             font-size: 1.42rem;
             font-weight: 800;
             line-height: 1.2;
@@ -196,7 +196,7 @@
 
         .menu-label {
             margin: 20px 22px 10px;
-            color: rgba(255, 214, 170, 0.62);
+            color: rgba(148, 163, 184, 0.82);
             font-size: 0.72rem;
             font-weight: 700;
             text-transform: uppercase;
@@ -227,7 +227,7 @@
         .nav-menu li a:hover {
             background: rgba(255, 255, 255, 0.1);
             color: var(--sidebar-text-strong);
-            border-left-color: rgba(251, 146, 60, 0.92);
+            border-left-color: var(--sidebar-accent);
             transform: translateX(2px);
         }
 
