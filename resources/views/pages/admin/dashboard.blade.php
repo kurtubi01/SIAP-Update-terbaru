@@ -5,7 +5,7 @@
 @php($dashboardRole = $role ?? strtolower(Auth::user()->role ?? 'admin'))
 @php($dashboardTheme = [
     'admin' => ['accent' => '#0d47a1', 'badge' => 'Kontrol penuh', 'summary' => 'Pusat kendali untuk seluruh unit kerja.', 'quickLinks' => [
-        ['label' => 'Akses Cepat', 'route' => 'admin.sop.aksescepat', 'icon' => 'bi-lightning-charge-fill', 'tone' => 'text-warning'],
+        ['label' => 'Nama Subjek Sesuai SOP', 'route' => 'admin.sop.aksescepat', 'icon' => 'bi-lightning-charge-fill', 'tone' => 'text-warning'],
         ['label' => 'Manajemen User', 'route' => 'admin.user.index', 'icon' => 'bi-person-gear', 'tone' => 'text-info'],
         ['label' => 'Monitoring', 'route' => 'admin.monitoring.index', 'icon' => 'bi-bar-chart-steps', 'tone' => 'text-success'],
         ['label' => 'Manajemen Subjek', 'route' => 'admin.subjek.index', 'icon' => 'bi-tags', 'tone' => 'text-secondary'],
@@ -319,7 +319,7 @@
                 <div class="fw-bold opacity-75 small">SOP AKTIF</div>
                 <h1 class="fw-extrabold mb-0">{{ $aman ?? 0 }}</h1>
             </div>
-            
+
         </div>
         <div class="col-md-3">
             <div class="card card-stat bg-gradient-orange shadow">
@@ -439,7 +439,7 @@
 
     @if(!empty($dashboardTheme['quickLinks']))
         <div class="mb-4">
-            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-lightning-fill text-warning me-2"></i>Akses Sesuai Role</h5>
+            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-lightning-fill text-warning me-2"></i>Akses Cepat Subjek</h5>
             <div class="row g-3">
                 @foreach($dashboardTheme['quickLinks'] as $item)
                     <div class="col-6 col-md-3 col-xl-3">

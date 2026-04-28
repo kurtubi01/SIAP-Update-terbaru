@@ -61,7 +61,7 @@
 <div class="container-fluid app-page-shell py-4">
     <div class="app-page-header mb-4">
         <div>
-            <h1 class="app-page-title">Akses Cepat SOP</h1>
+            <h1 class="app-page-title">Akses Cepat Subjek SOP</h1>
             <p class="app-page-subtitle">Pilih subjek untuk membuka daftar SOP. Setiap baris hanya menampilkan satu subjek.</p>
         </div>
     </div>

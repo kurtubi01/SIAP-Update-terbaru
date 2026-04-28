@@ -170,13 +170,13 @@
 
 <div class="card login-card p-4 p-md-5">
     <div class="brand-mark">
-        <img src="{{ asset('storage/images/logo-siap.jpeg') }}" alt="Logo SIAP">
+        <img src="{{ asset('storage/images/log_siapp.png') }}" alt="Logo SIAPP">
     </div>
 
     <div class="brand-text">
-        <span class="brand-name d-block fw-bold">SIAP</span>
+        <span class="brand-name d-block fw-bold">SIAPP</span>
         <span class="brand-sub d-block text-muted">
-            Sistem Informasi Administrasi Prosedur
+            Sistem Informasi Administrasi Prosedur Pemerintahan
         </span>
     </div>
 
@@ -222,9 +222,6 @@
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
             <a href="#" class="link-action" data-bs-toggle="modal" data-bs-target="#accountRecoveryModal">
                 Lupa username atau password?
-            </a>
-            <a href="{{ route('password.request') }}" class="link-action">
-                Reset via email
             </a>
         </div>
 

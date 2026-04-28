@@ -749,11 +749,11 @@
         <nav id="sidebar">
             <div class="sidebar-header">
                 <div class="brand-mark" aria-hidden="true">
-                    <img src="{{ asset('storage/images/logo-siap.jpeg') }}" alt="Logo SIAP">
+                    <img src="{{ asset('storage/images/log_siapp.png') }}" alt="Logo SIAPP">
                 </div>
                 <div class="brand-text">
-                    <span class="brand-name">SIAP</span>
-                    <span class="brand-sub">Sistem Informasi Administrasi Prosedur</span>
+                    <span class="brand-name">SIAPP</span>
+                    <span class="brand-sub">Sistem Informasi Administrasi Prosedur Pemerintahan</span>
                 </div>
             </div>
 
@@ -795,15 +795,8 @@
                     <li class="{{ request()->routeIs('viewer.monitoring.*') ? 'active' : '' }}">
                         <a href="{{ route('viewer.monitoring.index') }}">
                             <i class="bi bi-file-earmark-bar-graph"></i>
-                            <span>Laporan Monitoring</span>
+                            <span>Laporan Monev</span>
                         </a>
-                    </li>
-                    <li class="{{ request()->routeIs('viewer.evaluasi.*') ? 'active' : '' }}">
-                        <a href="{{ route('viewer.evaluasi.index') }}">
-                            <i class="bi bi-clipboard2-check"></i>
-                            <span>Laporan Evaluasi</span>
-                        </a>
-                    </li>
                 @endif
 
                 @if($role === 'admin')
