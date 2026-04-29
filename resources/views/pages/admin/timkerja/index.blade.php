@@ -352,6 +352,59 @@
 .text-danger{
     color:#dc2626 !important;
 }
+
+[data-theme="dark"] .avatar-sm {
+    background: #23314a !important;
+    color: #dbeafe !important;
+}
+
+[data-theme="dark"] #searchTable {
+    background: #111827 !important;
+    color: #e5edf7 !important;
+    border-color: #334155 !important;
+}
+
+[data-theme="dark"] #searchTable::placeholder {
+    color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .btn.btn-light,
+[data-theme="dark"] .btn-group .btn {
+    background: #172033 !important;
+    border-color: #334155 !important;
+    color: #e5edf7 !important;
+}
+
+[data-theme="dark"] .btn.btn-light:hover,
+[data-theme="dark"] .btn-group .btn:hover {
+    background: #1f2a3d !important;
+}
+
+[data-theme="dark"] .bg-success-subtle {
+    background: #183127 !important;
+}
+
+[data-theme="dark"] .bg-danger-subtle {
+    background: #3a1f24 !important;
+}
+
+[data-theme="dark"] .modal-content,
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .modal-footer {
+    background: #111827 !important;
+    color: #e5edf7 !important;
+    border-color: #334155 !important;
+}
+
+[data-theme="dark"] .btn-close {
+    filter: invert(1) grayscale(1);
+}
+
+[data-theme="dark"] .modal-content .btn.btn-light {
+    background: #172033 !important;
+    color: #e5edf7 !important;
+    border-color: #334155 !important;
+}
 </style>
 
 <script>

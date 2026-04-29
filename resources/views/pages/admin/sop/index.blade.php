@@ -705,6 +705,141 @@
         border: 1px solid #e2e8f0;
     }
 
+    [data-theme="dark"] .main-card,
+    [data-theme="dark"] .table-shell,
+    [data-theme="dark"] .history-panel,
+    [data-theme="dark"] .history-stat,
+    [data-theme="dark"] .sop-action-summary,
+    [data-theme="dark"] .sop-action-panel,
+    [data-theme="dark"] .sop-form-shell,
+    [data-theme="dark"] .sop-file-drop,
+    [data-theme="dark"] .form-note-soft,
+    [data-theme="dark"] .locked-sop-row {
+        background: linear-gradient(180deg, #111827 0%, #172033 100%) !important;
+        border-color: #334155 !important;
+        color: #e5edf7 !important;
+        box-shadow: none;
+    }
+
+    [data-theme="dark"] .table-toolbar {
+        background: #111827 !important;
+        border-bottom-color: #263244 !important;
+    }
+
+    [data-theme="dark"] .page-intro-title,
+    [data-theme="dark"] .tim-label,
+    [data-theme="dark"] .sop-form-section-title,
+    [data-theme="dark"] .target-nama .fw-bold,
+    [data-theme="dark"] .target-subjek,
+    [data-theme="dark"] .target-nomor,
+    [data-theme="dark"] .target-tim,
+    [data-theme="dark"] .sop-action-meta-chip.revision,
+    [data-theme="dark"] #modalSopAction .form-label {
+        color: #e5edf7 !important;
+    }
+
+    [data-theme="dark"] .table-heading-note,
+    [data-theme="dark"] .tahun-label,
+    [data-theme="dark"] .search-box input::placeholder,
+    [data-theme="dark"] .form-note-soft,
+    [data-theme="dark"] .filter-dropdown-empty,
+    [data-theme="dark"] .monev-pill .status-date {
+        color: #94a3b8 !important;
+    }
+
+    [data-theme="dark"] .search-box,
+    [data-theme="dark"] .filter-dropdown-toggle,
+    [data-theme="dark"] .filter-dropdown-search,
+    [data-theme="dark"] .filter-dropdown-menu,
+    [data-theme="dark"] #modalSopAction .form-control,
+    [data-theme="dark"] #modalSopAction .form-select,
+    [data-theme="dark"] .sop-file-drop .form-control {
+        background: #111827 !important;
+        color: #e5edf7 !important;
+        border-color: #334155 !important;
+    }
+
+    [data-theme="dark"] .custom-table thead th {
+        background: #1f2a3d !important;
+        border-color: #334155 !important;
+        color: #dbeafe !important;
+    }
+
+    [data-theme="dark"] .custom-table tbody tr,
+    [data-theme="dark"] .custom-table tbody tr:nth-child(even) {
+        background: #111827 !important;
+        box-shadow: none;
+    }
+
+    [data-theme="dark"] .custom-table tbody td {
+        border-color: #2d3a4f !important;
+        color: #e5edf7 !important;
+    }
+
+    [data-theme="dark"] .row-number-pill,
+    [data-theme="dark"] .number-badge,
+    [data-theme="dark"] .revision-badge,
+    [data-theme="dark"] .badge-subjek,
+    [data-theme="dark"] .sop-action-meta-chip,
+    [data-theme="dark"] .sop-action-tabs .nav-link,
+    [data-theme="dark"] .nama-sop-link {
+        background: #1f2a3d !important;
+        color: #dbeafe !important;
+        border-color: #334155 !important;
+        box-shadow: none;
+    }
+
+    [data-theme="dark"] .nama-sop-link:hover,
+    [data-theme="dark"] .action-combo-btn:hover,
+    [data-theme="dark"] .btn-action:hover,
+    [data-theme="dark"] .sop-action-tabs .nav-link:hover {
+        background: #2563eb !important;
+        color: #ffffff !important;
+        border-color: #2563eb !important;
+    }
+
+    [data-theme="dark"] .nama-sop-link .click-indicator,
+    [data-theme="dark"] .sop-form-section-title .icon {
+        background: #23314a !important;
+        color: #93c5fd !important;
+    }
+
+    [data-theme="dark"] .monev-pill.is-done {
+        background: #183127 !important;
+        color: #bbf7d0 !important;
+        border-color: #2f5d46 !important;
+    }
+
+    [data-theme="dark"] .monev-pill.is-empty {
+        background: #3a1f24 !important;
+        color: #fecaca !important;
+        border-color: #7f1d1d !important;
+    }
+
+    [data-theme="dark"] .action-combo-btn,
+    [data-theme="dark"] .btn-action,
+    [data-theme="dark"] .btn-sop-soft {
+        background: #172033 !important;
+        color: #e5edf7 !important;
+        border-color: #334155 !important;
+        box-shadow: none;
+    }
+
+    [data-theme="dark"] #modalSopAction .modal-content {
+        background: linear-gradient(180deg, #111827 0%, #172033 100%) !important;
+        border-color: #334155 !important;
+    }
+
+    [data-theme="dark"] .filter-dropdown-item {
+        color: #e5edf7 !important;
+    }
+
+    [data-theme="dark"] .filter-dropdown-item:hover:not(.active),
+    [data-theme="dark"] .filter-dropdown-item:focus-visible:not(.active) {
+        background: #1f2a3d !important;
+        color: #93c5fd !important;
+    }
+
     @media (max-width: 991.98px) {
         #modalSopAction .modal-dialog {
             max-width: calc(100vw - 2rem);

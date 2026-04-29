@@ -123,7 +123,7 @@ Route::middleware(['auth', 'track.user.activity'])->group(function () {
         Route::get('/sop/{id}/history', [SopController::class, 'history'])->name('sop.history');
         Route::get('/monitoring', [MonevReportController::class, 'monitoring'])->name('monitoring.index');
         Route::get('/evaluasi', [MonevReportController::class, 'evaluasi'])->name('evaluasi.index');
-        Route::get('/laporan-monev/download', [MonevReportController::class, 'download'])->name('monev.report.download');
+        Route::get('/laporan-monev/download/excel', [MonevReportController::class, 'downloadExcel'])->name('monev.report.download.excel');
     });
 
     // --- PROFILE MANAGEMENT ---

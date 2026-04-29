@@ -225,6 +225,86 @@
         font-size: 0.78rem;
     }
 
+    [data-theme="dark"] .dashboard-chart-card,
+    [data-theme="dark"] .viewer-report-card,
+    [data-theme="dark"] .nav-box {
+        background: linear-gradient(180deg, #111827 0%, #172033 100%) !important;
+        border-color: #334155 !important;
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+    }
+
+    [data-theme="dark"] .nav-box:hover {
+        background: linear-gradient(180deg, #172033 0%, #1f2a3d 100%) !important;
+        border-color: #475569 !important;
+        box-shadow: 0 18px 30px rgba(0, 0, 0, 0.26);
+    }
+
+    [data-theme="dark"] .nav-box .nav-icon-wrap {
+        background: linear-gradient(135deg, #1f2a3d 0%, #23314a 100%) !important;
+    }
+
+    [data-theme="dark"] .nav-box .nav-label,
+    [data-theme="dark"] .viewer-report-table td,
+    [data-theme="dark"] .viewer-report-table td .fw-bold {
+        color: #e5edf7 !important;
+    }
+
+    [data-theme="dark"] .nav-box .nav-caption,
+    [data-theme="dark"] .viewer-report-table .text-muted,
+    [data-theme="dark"] .viewer-report-table td .text-muted {
+        color: #94a3b8 !important;
+    }
+
+    [data-theme="dark"] .viewer-report-head {
+        background: linear-gradient(135deg, #1e293b 0%, #3730a3 100%) !important;
+    }
+
+    [data-theme="dark"] .viewer-report-table {
+        background: #111827 !important;
+        border-radius: 18px;
+    }
+
+    [data-theme="dark"] .viewer-report-table table {
+        background: #111827 !important;
+    }
+
+    [data-theme="dark"] .viewer-report-table th {
+        background: #1f2a3d !important;
+        color: #93c5fd !important;
+        border-color: #334155 !important;
+    }
+
+    [data-theme="dark"] .viewer-report-table td {
+        background: #111827 !important;
+        border-color: #334155 !important;
+    }
+
+    [data-theme="dark"] .viewer-report-card .btn-outline-success,
+    [data-theme="dark"] .viewer-report-card .btn-outline-primary,
+    [data-theme="dark"] .viewer-report-card .btn-outline-dark {
+        background: #172033 !important;
+        color: #e5edf7 !important;
+        border-color: #475569 !important;
+    }
+
+    [data-theme="dark"] .viewer-report-card .btn-outline-success:hover,
+    [data-theme="dark"] .viewer-report-card .btn-outline-primary:hover,
+    [data-theme="dark"] .viewer-report-card .btn-outline-dark:hover {
+        background: #1f2a3d !important;
+        color: #ffffff !important;
+    }
+
+    [data-theme="dark"] .bg-light-subtle {
+        background: #172033 !important;
+        border-color: #334155 !important;
+    }
+
+    [data-theme="dark"] .badge.bg-light.text-dark {
+        background: #1f2a3d !important;
+        color: #dbeafe !important;
+        border-color: #334155 !important;
+    }
+
     @media (max-width: 991.98px) {
         .top-header {
             padding: 20px;
@@ -523,8 +603,24 @@
         return dynamicColors;
     }
 
+    function isDarkTheme() {
+        return document.documentElement.getAttribute('data-theme') === 'dark';
+    }
+
+    function chartTextColor() {
+        return isDarkTheme() ? '#e5edf7' : '#334155';
+    }
+
+    function chartGridColor() {
+        return isDarkTheme() ? 'rgba(148, 163, 184, 0.22)' : '#f0f0f0';
+    }
+
+    function chartCardBorderColor() {
+        return isDarkTheme() ? '#334155' : '#ffffff';
+    }
+
     // Chart Bar (Warna Berbeda tiap Subjek)
-    new Chart(document.getElementById('bidangChart'), {
+    const bidangChart = new Chart(document.getElementById('bidangChart'), {
         type: 'bar',
         data: {
             labels: subjekLabels,
@@ -532,6 +628,8 @@
                 label: 'Jumlah SOP',
                 data: subjekCounts,
                 backgroundColor: generateColors(subjekLabels.length), // Menggunakan fungsi warna
+                borderColor: chartCardBorderColor(),
+                borderWidth: 1,
                 borderRadius: 10,
                 barThickness: 30
             }]
@@ -553,23 +651,27 @@
             scales: {
                 y: {
                     beginAtZero: true,
-                    grid: { color: '#f0f0f0' },
-                    ticks: { stepSize: 1 }
+                    grid: { color: chartGridColor() },
+                    ticks: { stepSize: 1, color: chartTextColor() }
                 },
-                x: { grid: { display: false } }
+                x: {
+                    grid: { display: false },
+                    ticks: { color: chartTextColor() }
+                }
             }
         }
     });
 
     // Chart Doughnut (Status Berkas)
-    new Chart(document.getElementById('statusChart'), {
+    const statusChart = new Chart(document.getElementById('statusChart'), {
         type: 'doughnut',
         data: {
             labels: ['Aktif', 'Revisi', 'Nonaktif/Kadaluarsa'],
             datasets: [{
                 data: [{{ $aman ?? 0 }}, {{ $review ?? 0 }}, {{ $kritis ?? 0 }}],
                 backgroundColor: ['#11998e', '#f2994a', '#eb3349'],
-                borderWidth: 0,
+                borderColor: isDarkTheme() ? '#111827' : '#ffffff',
+                borderWidth: 2,
                 hoverOffset: 10
             }]
         },
@@ -580,10 +682,25 @@
             plugins: {
                 legend: {
                     position: 'bottom',
-                    labels: { usePointStyle: true, padding: 20, font: { size: 12 } }
+                    labels: { usePointStyle: true, padding: 20, font: { size: 12 }, color: chartTextColor() }
                 }
             }
         }
     });
+
+    function syncDashboardChartsWithTheme() {
+        bidangChart.data.datasets[0].borderColor = chartCardBorderColor();
+        bidangChart.options.scales.y.grid.color = chartGridColor();
+        bidangChart.options.scales.y.ticks.color = chartTextColor();
+        bidangChart.options.scales.x.ticks.color = chartTextColor();
+        bidangChart.update();
+
+        statusChart.data.datasets[0].borderColor = isDarkTheme() ? '#111827' : '#ffffff';
+        statusChart.options.plugins.legend.labels.color = chartTextColor();
+        statusChart.update();
+    }
+
+    document.addEventListener('siap-theme-change', syncDashboardChartsWithTheme);
+    syncDashboardChartsWithTheme();
 </script>
 @endsection

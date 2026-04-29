@@ -1,6 +1,7 @@
 @extends('layouts.sidebarmenu')
 
 @section('content')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
     .report-toolbar {
         display: flex;
@@ -27,6 +28,10 @@
         overflow-x: auto;
     }
 
+    .report-sheet-inner {
+        min-width: 1120px;
+    }
+
     .report-title {
         text-align: center;
         color: #000000;
@@ -42,7 +47,6 @@
 
     .report-table {
         width: 100%;
-        min-width: 1120px;
         border-collapse: collapse;
         color: #000000;
         font-size: 0.86rem;
@@ -119,6 +123,13 @@
         margin-top: 0.55rem;
     }
 
+    .report-download-group {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.7rem;
+        flex-wrap: wrap;
+    }
+
     [data-theme="dark"] .report-sheet {
         background: #111827 !important;
         border-color: #334155 !important;
@@ -153,7 +164,21 @@
         background: #164e63 !important;
     }
 
+    [data-theme="dark"] .report-download-group .btn-outline-success,
+    [data-theme="dark"] .report-download-group .btn-outline-danger,
+    [data-theme="dark"] .report-actions .btn-outline-secondary,
+    [data-theme="dark"] .report-actions .form-select {
+        background: #111827 !important;
+        color: #e5edf7 !important;
+        border-color: #334155 !important;
+    }
+
     @media print {
+        @page {
+            size: A4 landscape;
+            margin: 10mm;
+        }
+
         #sidebar,
         #btn-toggle-custom,
         .top-navbar,
@@ -174,6 +199,54 @@
             box-shadow: none;
             border: 0;
             padding: 0;
+            overflow: visible !important;
+        }
+
+        .report-sheet-inner {
+            min-width: 0 !important;
+        }
+
+        .report-title {
+            margin-bottom: 1.5rem;
+        }
+
+        .report-title div {
+            font-size: 0.92rem;
+        }
+
+        .report-table {
+            width: 100% !important;
+            min-width: 0 !important;
+            table-layout: fixed;
+            font-size: 10px;
+            line-height: 1.25;
+        }
+
+        .report-table th,
+        .report-table td {
+            padding: 4px 5px;
+            word-break: break-word;
+        }
+
+        .report-no {
+            width: 32px;
+        }
+
+        .report-sop {
+            width: 140px;
+        }
+
+        .report-evaluasi {
+            width: 250px;
+        }
+
+        .report-monitoring-choice {
+            width: 100px;
+        }
+
+        .report-monitoring-result,
+        .report-monitoring-action {
+            width: auto;
         }
     }
 </style>
@@ -193,28 +266,93 @@
                     @endforeach
                 </select>
             </form>
-            <a href="{{ route('viewer.monev.report.download', ['periode' => $period]) }}" class="btn btn-success fw-bold rounded-3">
-                <i class="bi bi-download me-2"></i>Unduh Laporan
-            </a>
-            <button type="button" class="btn btn-outline-secondary fw-bold rounded-3" onclick="window.print()">
+            <div class="report-download-group">
+                <button type="button" class="btn btn-outline-danger fw-bold rounded-3" id="downloadPdfBtn">
+                    <i class="bi bi-file-earmark-pdf me-2"></i>Unduh PDF
+                </button>
+                <a href="{{ route('viewer.monev.report.download.excel', ['periode' => $period]) }}" class="btn btn-outline-success fw-bold rounded-3">
+                    <i class="bi bi-file-earmark-excel me-2"></i>Unduh Excel
+                </a>
+            </div>
+            <button type="button" class="btn btn-outline-secondary fw-bold rounded-3" id="printReportBtn">
                 <i class="bi bi-printer me-2"></i>Cetak
             </button>
         </div>
     </div>
 
     <div class="report-sheet">
-        <div class="report-title">
-            <div>Laporan Hasil</div>
-            <div>Monitoring dan Evaluasi</div>
-            <div>Sistem Operasional Prosedur Administrasi Pemerintahan (SOP AP)</div>
-            <div>Badan Pusat Statistik Provinsi Banten</div>
-            <div>Periode {{ $period }}</div>
-        </div>
+        <div class="report-sheet-inner" id="reportExportArea">
+            <div class="report-title">
+                <div>Laporan Hasil</div>
+                <div>Monitoring dan Evaluasi</div>
+                <div>Sistem Operasional Prosedur Administrasi Pemerintahan (SOP AP)</div>
+                <div>Badan Pusat Statistik Provinsi Banten</div>
+                <div>Periode {{ $period }}</div>
+            </div>
 
-        @include('pages.viewer.partials.monev-report-table', [
-            'groupedRows' => $groupedRows,
-            'criteriaOptions' => $criteriaOptions,
-        ])
+            @include('pages.viewer.partials.monev-report-table', [
+                'groupedRows' => $groupedRows,
+                'criteriaOptions' => $criteriaOptions,
+            ])
+        </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const printButton = document.getElementById('printReportBtn');
+        const downloadPdfButton = document.getElementById('downloadPdfBtn');
+        const reportArea = document.getElementById('reportExportArea');
+
+        function createExportContainer() {
+            const wrapper = document.createElement('div');
+            wrapper.style.position = 'fixed';
+            wrapper.style.left = '-99999px';
+            wrapper.style.top = '0';
+            wrapper.style.width = '1120px';
+            wrapper.style.background = '#ffffff';
+            wrapper.style.padding = '24px';
+            wrapper.style.zIndex = '-1';
+
+            const clone = reportArea.cloneNode(true);
+            clone.style.minWidth = '0';
+
+            wrapper.appendChild(clone);
+            document.body.appendChild(wrapper);
+
+            return {
+                wrapper,
+                clone,
+            };
+        }
+
+        printButton?.addEventListener('click', function () {
+            window.print();
+        });
+
+        downloadPdfButton?.addEventListener('click', function () {
+            if (typeof html2pdf === 'undefined') {
+                window.alert('Generator PDF belum termuat. Silakan muat ulang halaman lalu coba lagi.');
+                return;
+            }
+
+            const exportTarget = createExportContainer();
+
+            html2pdf()
+                .set({
+                    margin: [8, 8, 8, 8],
+                    filename: 'laporan-monev-sop-ap-{{ $period }}.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+                    pagebreak: { mode: ['css', 'legacy'] },
+                })
+                .from(exportTarget.clone)
+                .save()
+                .finally(function () {
+                    exportTarget.wrapper.remove();
+                });
+        });
+    });
+</script>
 @endsection

@@ -22,21 +22,21 @@ class MonevReportController extends Controller
         return $this->reportView($request, 'evaluasi');
     }
 
-    public function download(Request $request)
+    public function downloadExcel(Request $request)
     {
         $period = $this->reportService->resolvePeriod($request->query('periode'));
         $groupedRows = $this->reportService->groupedRows($period);
         $filename = 'laporan-monev-sop-ap-' . $period . '.xls';
+        $content = view('pages.viewer.monev-report-excel', [
+            'period' => $period,
+            'groupedRows' => $groupedRows,
+            'criteriaOptions' => ViewerMonevReportService::EVALUASI_KRITERIA,
+        ])->render();
 
-        return response()->streamDownload(function () use ($period, $groupedRows) {
-            echo "\xEF\xBB\xBF";
-            echo view('pages.viewer.monev-report-download', [
-                'period' => $period,
-                'groupedRows' => $groupedRows,
-                'criteriaOptions' => ViewerMonevReportService::EVALUASI_KRITERIA,
-            ])->render();
-        }, $filename, [
+        return response($content, 200, [
             'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Cache-Control' => 'max-age=0',
         ]);
     }
 

@@ -142,6 +142,63 @@
         text-align: center;
         color: #64748b;
     }
+
+    [data-theme="dark"] .activity-hero {
+        background:
+            radial-gradient(circle at top right, rgba(59, 130, 246, 0.16), transparent 24%),
+            linear-gradient(135deg, #111827 0%, #172033 55%, #1f2937 100%) !important;
+        border-color: #334155 !important;
+        box-shadow: 0 24px 52px rgba(0, 0, 0, 0.22);
+    }
+
+    [data-theme="dark"] .activity-badge,
+    [data-theme="dark"] .summary-card,
+    [data-theme="dark"] .entries-box {
+        background: #172033 !important;
+        color: #e5edf7 !important;
+        border-color: #334155 !important;
+    }
+
+    [data-theme="dark"] .summary-icon,
+    [data-theme="dark"] .row-no,
+    [data-theme="dark"] .user-avatar {
+        background: linear-gradient(135deg, #1f2a3d 0%, #23314a 100%) !important;
+        color: #93c5fd !important;
+    }
+
+    [data-theme="dark"] .search-box {
+        border-color: #334155 !important;
+        background: #111827 !important;
+    }
+
+    [data-theme="dark"] .search-box input,
+    [data-theme="dark"] .entries-select {
+        color: #e5edf7 !important;
+    }
+
+    [data-theme="dark"] .search-box input::placeholder {
+        color: #94a3b8 !important;
+    }
+
+    [data-theme="dark"] .activity-pill {
+        background: #1f2a3d !important;
+        color: #93c5fd !important;
+        border: 1px solid #334155;
+    }
+
+    [data-theme="dark"] .activity-detail {
+        color: #cbd5e1 !important;
+    }
+
+    [data-theme="dark"] .btn.btn-light {
+        background: #172033 !important;
+        color: #e5edf7 !important;
+        border-color: #475569 !important;
+    }
+
+    [data-theme="dark"] .btn.btn-light:hover {
+        background: #1f2a3d !important;
+    }
 </style>
 
 <div class="container-fluid py-4">

@@ -396,77 +396,47 @@ class SopController extends Controller
         $visibleSubjekIds = $this->visibleSubjekIds();
 
         $request->validate([
-            'nama_sop' => 'nullable|string|max:255',
-            'nomor_sop' => 'nullable|string|max:100',
-            'link_sop' => 'required|array|min:1',
-            'link_sop.*' => 'required|file|mimes:pdf|max:' . self::SOP_FILE_MAX_KB,
-            'files_metadata' => 'nullable|array',
-            'files_metadata.*.nama_sop' => 'nullable|string|max:255',
-            'files_metadata.*.nomor_sop' => 'nullable|string|max:100',
-            'files_metadata.*.tahun' => 'nullable|numeric',
-            'files_metadata.*.id_subjek' => ['nullable', Rule::in($visibleSubjekIds)],
-            'id_subjek' => ['nullable', Rule::in($visibleSubjekIds)],
-            'tahun' => 'nullable|numeric',
+            'nama_sop' => 'required|string|max:255',
+            'nomor_sop' => 'required|string|max:100',
+            'link_sop' => 'required|file|mimes:pdf|max:' . self::SOP_FILE_MAX_KB,
+            'id_subjek' => ['required', Rule::in($visibleSubjekIds)],
+            'tahun' => 'required|numeric',
         ]);
 
-        $uploadedFiles = $request->file('link_sop', []);
-        $filesMetadata = $request->input('files_metadata', []);
-        $createdSops = DB::transaction(function () use ($request, $uploadedFiles, $filesMetadata) {
-            $records = collect();
+        $uploadedFile = $request->file('link_sop');
 
-            foreach ($uploadedFiles as $index => $uploadedFile) {
-                if (!$uploadedFile instanceof UploadedFile) {
-                    continue;
-                }
-
-                $parsedFileData = $this->extractSopDataFromFilename($uploadedFile->getClientOriginalName());
-                $inputMetadata = $filesMetadata[$index] ?? [];
-                $resolvedNamaSop = trim((string) ($inputMetadata['nama_sop'] ?? '')) ?: $parsedFileData['nama_sop'] ?: trim((string) $request->nama_sop);
-                $resolvedNomorSop = trim((string) ($inputMetadata['nomor_sop'] ?? '')) ?: trim((string) $request->nomor_sop);
-                $resolvedSubjekId = (int) ($inputMetadata['id_subjek'] ?? $request->id_subjek ?? 0);
-                $resolvedYear = trim((string) ($inputMetadata['tahun'] ?? '')) ?: $parsedFileData['tahun'] ?: trim((string) $request->tahun);
-
-                if ($resolvedNamaSop === '' || $resolvedNomorSop === '' || $resolvedSubjekId <= 0 || $resolvedYear === '') {
-                    throw ValidationException::withMessages([
-                        'link_sop' => 'Nama SOP, nomor SOP, subjek/tim kerja, dan tahun wajib dilengkapi untuk setiap file PDF.',
-                    ]);
-                }
-
-                $path = $uploadedFile->store('uploads/sop', 'public');
-
-                $records->push(Sop::create([
-                    'nama_sop' => $resolvedNamaSop,
-                    'nomor_sop' => $resolvedNomorSop,
-                    'id_subjek' => $resolvedSubjekId,
-                    'revisi_ke' => 0,
-                    'link_sop' => $path,
-                    'status' => 'aktif',
-                    'tahun' => (int) $resolvedYear,
-                    'created_date' => now(),
-                    'created_by' => Auth::id(),
-                ]));
-            }
-
-            return $records;
-        });
-
-        if ($createdSops->isEmpty()) {
+        if (!$uploadedFile instanceof UploadedFile) {
             return redirect()
                 ->back()
                 ->withInput()
                 ->withErrors(['link_sop' => 'Dokumen SOP belum berhasil dibaca. Silakan pilih file PDF yang valid.']);
         }
 
+        $createdSop = DB::transaction(function () use ($request, $uploadedFile) {
+            $path = $uploadedFile->store('uploads/sop', 'public');
+
+            return Sop::create([
+                'nama_sop' => trim((string) $request->nama_sop),
+                'nomor_sop' => trim((string) $request->nomor_sop),
+                'id_subjek' => (int) $request->id_subjek,
+                'revisi_ke' => 0,
+                'link_sop' => $path,
+                'status' => 'aktif',
+                'tahun' => (int) $request->tahun,
+                'created_date' => now(),
+                'created_by' => Auth::id(),
+            ]);
+        });
+
         $this->userActivityService->log(
             $request->user(),
             'Tambah SOP',
-            'Menambahkan ' . $createdSops->count() . ' SOP baru. SOP pertama: ' . $createdSops->first()->nama_sop . ' dengan nomor ' . $createdSops->first()->nomor_sop . '.',
+            'Menambahkan SOP baru ' . $createdSop->nama_sop . ' dengan nomor ' . $createdSop->nomor_sop . '.',
             $request
         );
 
-        return redirect()->route($this->routePrefix() . '.sop.index')->with('success', $createdSops->count() > 1
-            ? 'Data SOP telah berhasil ditambahkan sebanyak ' . $createdSops->count() . ' dokumen.'
-            : 'Data SOP telah berhasil ditambahkan.');
+        return redirect()->route($this->routePrefix() . '.sop.index')
+            ->with('success', 'Data SOP telah berhasil ditambahkan.');
     }
 
     public function edit($id)

@@ -161,65 +161,21 @@
         margin-top: 8px;
     }
 
-    .upload-preview-wrap {
+    .selected-file-note {
         margin-top: 18px;
         border: 1px solid #dbe5f1;
         border-radius: 16px;
         background: #f8fbff;
         padding: 16px;
         display: none;
-    }
-
-    .upload-preview-wrap.is-visible {
-        display: block;
-    }
-
-    .upload-preview-card {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 14px;
-        padding: 14px;
-    }
-
-    .upload-preview-card + .upload-preview-card {
-        margin-top: 12px;
-    }
-
-    .upload-preview-title {
-        font-weight: 700;
-        color: #0f172a;
-        margin-bottom: 10px;
-    }
-
-    .upload-preview-file {
-        font-size: 0.84rem;
-        color: #64748b;
-        margin-bottom: 12px;
+        color: #475569;
+        font-size: 0.92rem;
+        font-weight: 600;
         word-break: break-word;
     }
 
-    .upload-preview-card-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 14px;
-    }
-
-    .upload-preview-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: #eff6ff;
-        color: #0d47a1;
-        border-radius: 999px;
-        padding: 6px 12px;
-        font-size: 0.82rem;
-        font-weight: 700;
-    }
-
-    .upload-preview-card .search-select-menu {
-        z-index: 30;
+    .selected-file-note.is-visible {
+        display: block;
     }
 </style>
 
@@ -321,13 +277,10 @@
                             <label class="form-label">Dokumen SOP (PDF)</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="bi bi-file-earmark-pdf text-danger"></i></span>
-                                <input type="file" name="link_sop[]" class="form-control" accept=".pdf" id="fileSop" multiple required>
+                                <input type="file" name="link_sop" class="form-control" accept=".pdf" id="fileSop" required>
                             </div>
-                            <div class="field-note">Bisa memilih banyak file PDF sekaligus. Setelah dipilih, sistem akan membuat form baru di bawah untuk setiap PDF. Isi otomatis hanya nama SOP dan tahun.</div>
-                            <div id="uploadPreviewWrap" class="upload-preview-wrap">
-                                <div class="upload-preview-title">Form dokumen yang akan disimpan</div>
-                                <div id="uploadPreviewList"></div>
-                            </div>
+                            <div class="field-note">Pilih satu file PDF untuk satu data SOP. Jika ingin menambah SOP lain, simpan dulu data ini lalu buat SOP baru lagi.</div>
+                            <div id="selectedFileNote" class="selected-file-note"></div>
                         </div>
                     </div>
 
@@ -360,11 +313,8 @@
         const timkerjaList = $('#timkerjaSearchList');
         const fileInput = $('#fileSop');
         const namaSopInput = $('input[name="nama_sop"]');
-        const nomorSopInput = $('input[name="nomor_sop"]');
         const tahunInput = $('input[name="tahun"]');
-        const uploadPreviewWrap = $('#uploadPreviewWrap');
-        const uploadPreviewList = $('#uploadPreviewList');
-        const currentYear = new Date().getFullYear();
+        const selectedFileNote = $('#selectedFileNote');
         let activeSubjekGroup = null;
 
         function openMenu(menu) {
@@ -433,15 +383,6 @@
             return null;
         }
 
-        function escapeHtml(value) {
-            return String(value ?? '')
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
-
         function extractSopDataFromFilename(filename) {
             const baseName = String(filename || '').replace(/\.pdf$/i, '');
             const normalized = baseName.replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
@@ -453,157 +394,27 @@
 
         function extractYearFromText(value) {
             const matches = String(value || '').match(/\b(19|20)\d{2}\b/g);
-            return matches?.length ? matches[matches.length - 1] : String(currentYear);
+            return matches?.length ? matches[matches.length - 1] : String(new Date().getFullYear());
         }
 
-        function renderSubjekMenu(target, keyword = '') {
-            const normalized = String(keyword || '').trim().toLowerCase();
-            const filtered = subjekGroups.filter(group => group.label.toLowerCase().includes(normalized));
-
-            if (!filtered.length) {
-                target.html('<div class="search-select-empty">Subjek tidak ditemukan.</div>');
-                return;
-            }
-
-            target.html(filtered.map(group => `
-                <div class="search-select-item" data-role="file-subjek-option" data-group-id="${escapeHtml(group.label.toLowerCase())}">
-                    <div class="search-select-title">${escapeHtml(group.label)}</div>
-                    <div class="search-select-meta">${group.items.length} pilihan tim kerja tersedia</div>
-                </div>
-            `).join(''));
-        }
-
-        function renderTimkerjaMenu(card, keyword = '') {
-            const timkerjaListTarget = card.find('[data-file-timkerja-list]');
-            const group = resolveSubjekGroupByLabel(card.find('.file-subjek-input').val());
-
-            if (!group) {
-                timkerjaListTarget.html('<div class="search-select-empty">Pilih subjek terlebih dahulu.</div>');
-                return;
-            }
-
-            const normalized = String(keyword || '').trim().toLowerCase();
-            const filtered = group.items.filter(item => item.timkerja_label.toLowerCase().includes(normalized));
-
-            if (!filtered.length) {
-                timkerjaListTarget.html('<div class="search-select-empty">Tim kerja tidak ditemukan untuk subjek ini.</div>');
-                return;
-            }
-
-            timkerjaListTarget.html(filtered.map(item => `
-                <div class="search-select-item" data-role="file-timkerja-option" data-id="${item.id}">
-                    <div class="search-select-title">${escapeHtml(item.timkerja_label)}</div>
-                    <div class="search-select-meta">Subjek ${escapeHtml(group.label)}</div>
-                </div>
-            `).join(''));
-        }
-
-        function syncFileCardSubjek(card, group) {
-            const subjekIdInput = card.find('.file-selected-subjek-id');
-            const timkerjaInputField = card.find('.file-timkerja-input');
-
-            card.find('.file-subjek-input').val(group ? group.label : '');
-            timkerjaInputField.val('');
-            subjekIdInput.val('');
-
-            if (group) {
-                timkerjaInputField.prop('disabled', false).attr('placeholder', 'Ketik nama tim kerja...');
-                if (group.items.length === 1) {
-                    timkerjaInputField.val(group.items[0].timkerja_label);
-                    subjekIdInput.val(group.items[0].id);
-                }
-            } else {
-                timkerjaInputField.prop('disabled', true).attr('placeholder', 'Pilih subjek terlebih dahulu');
-            }
-        }
-
-        function renderUploadPreview(files) {
+        function syncSelectedFile(files) {
             if (!files.length) {
-                uploadPreviewWrap.removeClass('is-visible');
-                uploadPreviewList.html('');
+                selectedFileNote.removeClass('is-visible').text('');
                 return;
             }
 
-            const html = files.map((file, index) => {
-                const parsed = extractSopDataFromFilename(file.name);
+            const parsed = extractSopDataFromFilename(files[0].name);
+            selectedFileNote
+                .addClass('is-visible')
+                .text('File terpilih: ' + files[0].name);
 
-                return `
-                    <div class="upload-preview-card">
-                        <div class="upload-preview-card-header">
-                            <div class="upload-preview-file mb-0">${index + 1}. ${escapeHtml(file.name)}</div>
-                            <span class="upload-preview-badge"><i class="bi bi-file-earmark-pdf"></i>Dokumen ${index + 1}</span>
-                        </div>
-                        <input type="hidden" name="files_metadata[${index}][id_subjek]" class="file-selected-subjek-id">
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <label class="form-label mb-1">Nama SOP</label>
-                                <input type="text"
-                                       name="files_metadata[${index}][nama_sop]"
-                                       class="form-control file-meta-nama"
-                                       data-index="${index}"
-                                       value="${escapeHtml(parsed.nama_sop)}"
-                                       required>
-                            </div>
+            if (!String(namaSopInput.val() || '').trim()) {
+                namaSopInput.val(parsed.nama_sop);
+            }
 
-                            <div class="col-md-6">
-                                <label class="form-label text-primary mb-1">Subjek</label>
-                                <div class="search-select file-search-select">
-                                    <i class="bi bi-search search-select-icon"></i>
-                                    <input type="text"
-                                           class="form-control search-select-input file-subjek-input"
-                                           placeholder="Ketik nama subjek..."
-                                           autocomplete="off"
-                                           required>
-                                    <div class="search-select-menu" data-file-subjek-menu>
-                                        <div class="search-select-list" data-file-subjek-list></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label text-primary mb-1">Tim Kerja</label>
-                                <div class="search-select file-search-select">
-                                    <i class="bi bi-search search-select-icon"></i>
-                                    <input type="text"
-                                           class="form-control search-select-input file-timkerja-input"
-                                           placeholder="Pilih subjek terlebih dahulu"
-                                           autocomplete="off"
-                                           disabled>
-                                    <div class="search-select-menu" data-file-timkerja-menu>
-                                        <div class="search-select-list" data-file-timkerja-list></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label mb-1">Nomor SOP</label>
-                                <input type="text"
-                                       name="files_metadata[${index}][nomor_sop]"
-                                       class="form-control file-meta-nomor"
-                                       data-index="${index}"
-                                       value=""
-                                       required>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label mb-1">Tahun Terbit</label>
-                                <input type="number"
-                                       name="files_metadata[${index}][tahun]"
-                                       class="form-control file-meta-tahun"
-                                       value="${escapeHtml(parsed.tahun)}"
-                                       required>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            uploadPreviewList.html(html);
-            uploadPreviewWrap.addClass('is-visible');
-
-            const firstParsed = extractSopDataFromFilename(files[0].name);
-            namaSopInput.val(firstParsed.nama_sop);
-            tahunInput.val(firstParsed.tahun);
+            if (!String(tahunInput.val() || '').trim()) {
+                tahunInput.val(parsed.tahun);
+            }
         }
 
         function setActiveSubjek(group) {
@@ -662,9 +473,6 @@
                 closeMenu(timkerjaMenu);
             }
 
-            if (!$(event.target).closest('.file-search-select').length) {
-                $('[data-file-subjek-menu], [data-file-timkerja-menu]').removeClass('is-open');
-            }
         });
 
         subjekInput.on('blur', function() {
@@ -713,184 +521,94 @@
 
         fileInput.on('change', function() {
             const files = Array.from(this.files || []);
-            renderUploadPreview(files);
-        });
-
-        namaSopInput.on('input', function() {
-            const firstNamaInput = $('.file-meta-nama').first();
-            if (firstNamaInput.length) {
-                firstNamaInput.val($(this).val());
-            }
-        });
-
-        tahunInput.on('input', function() {
-            const firstTahunInput = $('.file-meta-tahun').first();
-            if (firstTahunInput.length) {
-                firstTahunInput.val($(this).val());
-            }
-        });
-
-        $(document).on('focus input', '.file-subjek-input', function() {
-            const card = $(this).closest('.upload-preview-card');
-            renderSubjekMenu(card.find('[data-file-subjek-list]'), $(this).val());
-            card.find('[data-file-subjek-menu]').addClass('is-open');
-        });
-
-        $(document).on('focus input', '.file-timkerja-input', function() {
-            const card = $(this).closest('.upload-preview-card');
-            renderTimkerjaMenu(card, $(this).val());
-            card.find('[data-file-timkerja-menu]').addClass('is-open');
-        });
-
-        $(document).on('click', '[data-role="file-subjek-option"]', function() {
-            const card = $(this).closest('.upload-preview-card');
-            const group = resolveSubjekGroupByLabel($(this).data('group-id'));
-            syncFileCardSubjek(card, group);
-            card.find('[data-file-subjek-menu]').removeClass('is-open');
-            card.find('.file-timkerja-input').trigger('focus');
-        });
-
-        $(document).on('click', '[data-role="file-timkerja-option"]', function() {
-            const card = $(this).closest('.upload-preview-card');
-            const group = resolveSubjekGroupByLabel(card.find('.file-subjek-input').val());
-            const selectedId = Number($(this).data('id'));
-            const item = group?.items.find(option => Number(option.id) === selectedId);
-
-            if (!item) {
-                return;
-            }
-
-            card.find('.file-timkerja-input').val(item.timkerja_label);
-            card.find('.file-selected-subjek-id').val(item.id);
-            card.find('[data-file-timkerja-menu]').removeClass('is-open');
-        });
-
-        $(document).on('blur', '.file-subjek-input', function() {
-            const currentInput = $(this);
-            setTimeout(function() {
-                const card = currentInput.closest('.upload-preview-card');
-                const matchedGroup = resolveSubjekGroupByLabel(currentInput.val());
-
-                if (!matchedGroup) {
-                    syncFileCardSubjek(card, null);
-                    return;
-                }
-
-                syncFileCardSubjek(card, matchedGroup);
-            }, 150);
-        });
-
-        $(document).on('blur', '.file-timkerja-input', function() {
-            const currentInput = $(this);
-            setTimeout(function() {
-                const card = currentInput.closest('.upload-preview-card');
-                const group = resolveSubjekGroupByLabel(card.find('.file-subjek-input').val());
-
-                if (!group) {
-                    currentInput.val('');
-                    card.find('.file-selected-subjek-id').val('');
-                    return;
-                }
-
-                const matchedItem = group.items.find(item =>
-                    item.timkerja_label.toLowerCase() === String(currentInput.val() || '').trim().toLowerCase()
-                );
-
-                if (matchedItem) {
-                    currentInput.val(matchedItem.timkerja_label);
-                    card.find('.file-selected-subjek-id').val(matchedItem.id);
-                } else if (group.items.length === 1) {
-                    currentInput.val(group.items[0].timkerja_label);
-                    card.find('.file-selected-subjek-id').val(group.items[0].id);
-                } else {
-                    currentInput.val('');
-                    card.find('.file-selected-subjek-id').val('');
-                }
-            }, 150);
-        });
-
-        $('#formSop').on('submit', function(e) {
-            const fileCards = $('.upload-preview-card');
-            const hasBatchCards = fileCards.length > 0;
-
-            if (!hasBatchCards) {
-                if (!subjekInput.val().trim()) {
-                    e.preventDefault();
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Subjek belum dipilih',
-                        text: 'Mohon cari dan pilih subjek terlebih dahulu.',
-                        confirmButtonColor: '#0d47a1'
-                    });
-                    return;
-                }
-
-                if (!selectedSubjekId.val() && activeSubjekGroup && activeSubjekGroup.items.length > 1) {
-                    e.preventDefault();
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Tim kerja belum dipilih',
-                        text: 'Subjek ini punya lebih dari satu tim kerja. Silakan pilih tim kerja yang sesuai.',
-                        confirmButtonColor: '#0d47a1'
-                    });
-                    return;
-                }
-
-                if (!selectedSubjekId.val() && activeSubjekGroup && activeSubjekGroup.items.length === 1) {
-                    selectedSubjekId.val(activeSubjekGroup.items[0].id);
-                }
-            }
-
-            let invalidFileMeta = false;
-            let invalidSubjekSelection = false;
-
-            fileCards.each(function() {
-                const card = $(this);
-                const group = resolveSubjekGroupByLabel(card.find('.file-subjek-input').val());
-                const fileSubjekId = card.find('.file-selected-subjek-id');
-                const fileNomorInput = card.find('.file-meta-nomor');
-                const fileNamaInput = card.find('.file-meta-nama');
-                const fileTahunInput = card.find('.file-meta-tahun');
-
-                if (!String(fileNamaInput.val() || '').trim() || !String(fileNomorInput.val() || '').trim() || !String(fileTahunInput.val() || '').trim()) {
-                    invalidFileMeta = true;
-                    return false;
-                }
-
-                if (!group) {
-                    invalidSubjekSelection = true;
-                    return false;
-                }
-
-                if (!fileSubjekId.val() && group.items.length === 1) {
-                    fileSubjekId.val(group.items[0].id);
-                }
-
-                if (!fileSubjekId.val()) {
-                    invalidSubjekSelection = true;
-                    return false;
-                }
-            });
-
-            if (invalidFileMeta) {
-                e.preventDefault();
+            if (files.length > 1) {
+                this.value = '';
+                selectedFileNote.removeClass('is-visible').text('');
                 Swal.fire({
                     icon: 'warning',
-                    title: 'Data dokumen belum lengkap',
-                    text: 'Nama SOP, nomor SOP, dan tahun untuk setiap file PDF wajib diisi sebelum disimpan.',
+                    title: 'Satu SOP per penyimpanan',
+                    text: 'Silakan pilih satu file PDF saja untuk setiap proses tambah SOP.',
                     confirmButtonColor: '#0d47a1'
                 });
                 return;
             }
 
-            if (invalidSubjekSelection) {
+            syncSelectedFile(files);
+        });
+
+        syncSelectedFile(Array.from(fileInput[0]?.files || []));
+
+        $('#formSop').on('submit', function(e) {
+            const selectedFiles = Array.from(fileInput[0]?.files || []);
+
+            if (selectedFiles.length !== 1) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Dokumen SOP belum dipilih',
+                    text: 'Silakan pilih tepat satu file PDF sebelum menyimpan.',
+                    confirmButtonColor: '#0d47a1'
+                });
+                return;
+            }
+
+            if (!String(namaSopInput.val() || '').trim()) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Nama SOP belum diisi',
+                    text: 'Mohon lengkapi nama SOP sebelum menyimpan.',
+                    confirmButtonColor: '#0d47a1'
+                });
+                return;
+            }
+
+            if (!subjekInput.val().trim()) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Subjek belum dipilih',
+                    text: 'Mohon cari dan pilih subjek terlebih dahulu.',
+                    confirmButtonColor: '#0d47a1'
+                });
+                return;
+            }
+
+            if (!selectedSubjekId.val() && activeSubjekGroup && activeSubjekGroup.items.length > 1) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tim kerja belum dipilih',
+                    text: 'Subjek ini punya lebih dari satu tim kerja. Silakan pilih tim kerja yang sesuai.',
+                    confirmButtonColor: '#0d47a1'
+                });
+                return;
+            }
+
+            if (!selectedSubjekId.val() && activeSubjekGroup && activeSubjekGroup.items.length === 1) {
+                selectedSubjekId.val(activeSubjekGroup.items[0].id);
+            }
+
+            if (!selectedSubjekId.val()) {
                 e.preventDefault();
                 Swal.fire({
                     icon: 'warning',
                     title: 'Subjek atau tim kerja belum lengkap',
-                    text: 'Setiap form PDF wajib memilih subjek dan tim kerja yang sesuai.',
+                    text: 'Silakan pastikan subjek dan tim kerja sudah sesuai sebelum menyimpan.',
                     confirmButtonColor: '#0d47a1'
                 });
+                return;
+            }
+
+            if (!String($('input[name="nomor_sop"]').val() || '').trim() || !String($('input[name="tahun"]').val() || '').trim()) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Data SOP belum lengkap',
+                    text: 'Nomor SOP dan tahun terbit wajib diisi sebelum menyimpan.',
+                    confirmButtonColor: '#0d47a1'
+                });
+                return;
             }
         });
 
