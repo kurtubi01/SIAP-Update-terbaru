@@ -11,7 +11,7 @@
         ['label' => 'Manajemen Subjek', 'route' => 'admin.subjek.index', 'icon' => 'bi-tags', 'tone' => 'text-secondary'],
     ]],
     'operator' => ['accent' => '#0f766e', 'badge' => 'Operasional', 'summary' => 'Fokus pada input SOP, monitoring, dan evaluasi tim kerja Anda.', 'quickLinks' => [
-        ['label' => 'Akses Cepat', 'route' => 'operator.sop.aksescepat', 'icon' => 'bi-lightning-charge-fill', 'tone' => 'text-warning'],
+        ['label' => 'Nama Subjek Sesuai SOP', 'route' => 'operator.sop.aksescepat', 'icon' => 'bi-lightning-charge-fill', 'tone' => 'text-warning'],
         ['label' => 'Tambah SOP', 'route' => 'operator.sop.create', 'icon' => 'bi-plus-circle-fill', 'tone' => 'text-primary'],
         ['label' => 'Monitoring', 'route' => 'operator.monitoring.create', 'icon' => 'bi-clipboard2-plus-fill', 'tone' => 'text-success'],
         ['label' => 'Evaluasi', 'route' => 'operator.evaluasi.create', 'icon' => 'bi-ui-checks-grid', 'tone' => 'text-warning'],
